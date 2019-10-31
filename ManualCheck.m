@@ -255,6 +255,10 @@ while aa < length(Ws)
         
         MarkEnd = max(max( [find(Rs ~= 0) find(NewSs ~= 0)] ));
         
+        if isempty(MarkEnd)
+            MarkEnd = 0;
+        end
+        
         if aa == 1 %Adjustments for new window positions
             AdjVals(1:MarkEnd) = 1;
         else
