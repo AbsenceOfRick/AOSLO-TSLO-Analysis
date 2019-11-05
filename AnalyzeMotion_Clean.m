@@ -3,7 +3,7 @@ clc; clear all; close all;
 
 %Adjust parameters below by hand as desired before running
 Directory = 'C:\Users\noric\Desktop\Science_Stuff\FEM Study_Sam\Data\20109'; %Directory of .mat file(s)
-Curr_File = '20109R_C_004';  %Name of .mat file
+Curr_File = '20109R_D_005';  %Name of .mat file
 
 %Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). sa FieldSize(Arc)/512 = PxArcmin.
 PPD = 570; % Pixels per degree
@@ -12,10 +12,10 @@ ManualWin = 0.25; %Window for manual checking function (as a percentage of the t
 FiltWindow = 51; %Window for loess filter (Lower value = less smoothing/more false positives for saccades)
 
 ShowSep = 1; %Plot Saccade,Drift,Blink seperation
-Manual_Check = 1; %Manually check abnormal drift traces
+Manual_Check = 0; %Manually check abnormal drift traces
 CorrectTorsion = 0; %Correct torsion
 Analyze_Fourier = 0; %Analyze spectral properties of drifts (Unavailable, need to update to pmtm method from Welsch)
-AnalyzeMetrics = 0; %Analyze metrics of eye motion and generate plots
+AnalyzeMetrics = 1; %Analyze metrics of eye motion and generate plots
 Save_On = 0; %Save workspace in directory
 Load_Demarcation = 0; %Load eye trace demarcation from processed file
 
