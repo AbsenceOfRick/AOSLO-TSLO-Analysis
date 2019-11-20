@@ -128,26 +128,26 @@ while aa < length(Ws)
     
     %Make UI Panels and Buttons
     figure('units','normalized','position',[.1 .1 .7 .7]); %open figure
-    UIPH_Fig = uipanel('BackGroundColor','white','Position',[0 0 .6 1], ...
+    UIPH_Fig = uipanel('BackGroundColor','white','Position',[0 0.2 1 .8], ...
         'Title',sprintf('Window %d/%d, %d Samples',aa,length(Ws),MW));
     
-    UIPH = uipanel('BackgroundColor','white','Position',[.59 0 .4 1]); %Panel for buttons & 2D plot.
+    UIPH = uipanel('BackgroundColor','white','Position',[.59 0 .4 .2]); %Panel for buttons & 2D plot.
     
     %Make Selection Button
     UIH_Select = uicontrol('parent',UIPH,'style','pushbutton','string','Make Selection','BackgroundColor',[.1,.1,.1],...
-        'units','normalized','position',[.01 .21 .49 .1],'Fontsize',16,'ForeGroundColor','w','CallBack',{@UserR});
+        'units','normalized','position',[.01 .61 .49 .3],'Fontsize',16,'ForeGroundColor','w','CallBack',{@UserR});
     %Make Next Button
     UIH_Next = uicontrol('parent',UIPH,'style','pushbutton','string','Next','BackgroundColor',[.8,.8,.8],...
-        'units','normalized','position',[.49 .21 .49 .1],'Fontsize',16,'ForeGroundColor','k','CallBack',{@UserR});
+        'units','normalized','position',[.49 .61 .49 .3],'Fontsize',16,'ForeGroundColor','k','CallBack',{@UserR});
     %Accept Button
     UIH_Sacc = uicontrol('parent',UIPH,'style','pushbutton','string','Mark Saccade','BackgroundColor',[.2,.7,.2],...
-        'units','normalized','position',[.01 .11 .49 .1],'Fontsize',16,'CallBack',{@UserR});
+        'units','normalized','position',[.01 .31 .49 .3],'Fontsize',16,'CallBack',{@UserR});
     %Reject Button
     UIH_Reject = uicontrol('parent',UIPH,'style','pushbutton','string','Mark Rejected','BackgroundColor',[.7,.2,.2], ...
-        'units','normalized','position',[.49 .11 .49 .1],'Fontsize',16,'CallBack',{@UserR});
+        'units','normalized','position',[.49 .31 .49 .3],'Fontsize',16,'CallBack',{@UserR});
     %Reset Button
     UIH_Reset = uicontrol('parent',UIPH,'style','pushbutton','string','RESET','BackgroundColor',[.1,.7,.7], ...
-        'units','normalized','position',[.01 .01 .97 .1],'Fontsize',20,'CallBack',{@UserR});
+        'units','normalized','position',[.01 .01 .97 .3],'Fontsize',20,'CallBack',{@UserR});
     
     
     
@@ -157,8 +157,9 @@ while aa < length(Ws)
     title('X Trace');
     ylabel('Arcmin'); xlabel('Frames');
     xlim(SP1,[1 length(xx(Ws(aa):We(aa)))]);
+    pos = get(gca, 'Position');%JGadd
     set(gca,'xgrid','on','XTick',[0:SPF:length(xx)],'XTickLabel', ...
-        0:max([0:SPF:length(xx)]),'FontSize',10);
+        0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.05 pos(2) 0.9 pos(4)]);
     Yh1 = get(gca,'ylim');
     Ax1 = gca;
     
@@ -192,8 +193,9 @@ while aa < length(Ws)
     title('Y Trace');
     ylabel('Arcmin'); xlabel('Frames');
     xlim(SP2,[1 length(yy(Ws(aa):We(aa)))]);
+    pos = get(gca, 'Position');%JGadd
     set(gca,'xgrid','on','XTick',[0:SPF:length(xx)],'XTickLabel', ...
-        0:max([0:SPF:length(xx)]),'FontSize',10);
+        0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.05 pos(2) 0.9 pos(4)]);
     Yh2 = get(gca,'ylim');
     Ax2 = gca;
     
