@@ -78,12 +78,6 @@ MinLength = 30; %thirty samples (it's usually just 1 or 2 samples long)
 tmp = find(BadE - BadS < MinLength);
 BadS(tmp) = []; BadE(tmp) = [];
 
-
-%% Find blinks that were inside saccades
-
-
-
-
 % % Uncomment below in order to check original x stream vs adjusted x stream
 % figure;
 % subplot(2,1,1);

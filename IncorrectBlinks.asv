@@ -1,4 +1,4 @@
-function IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy)
+function [SaccS,SaccE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy)
 
 %Find "Blinks" inside saccades and mark whole thing as rejected
 
@@ -29,7 +29,6 @@ for aa = 1:length(SaccS)
     
     
     %Find Saccades near or within Blinks and expand blink
-    
     if ~isempty(find( (SaccE(aa) + 1) == DropS )) && ...
             isempty(find( (SaccS(aa) - 2) == DropE )) %Saccade ending on a blink but not starting
         ToDropS(aa) = 2; %Move blink start marker
@@ -49,30 +48,31 @@ for aa = 1:length(SaccS)
     
 end
 
-for aa = 1:length(ToDropS);
+%Reindex rejected values
+for aa = 1:length(ToDropS)
 
-if ToDropS(aa) == 1
+if ToDropS(aa) == 1 %B in S or S in B, simply mark as deleted
 
 NewRs = [SaccS(aa) NewRs]; NewRe = [SaccE(aa) NewRe];
 
 end
 
-if ToDropS(aa) == 2
+if ToDropS(aa) == 2 %Saccade ending on a blink but not starting
    
  i = find((SaccE(aa) + 1) == DropS);
  DropS(i) = SaccS(aa);
  
 end
 
-if ToDropS(aa) == 3
+if ToDropS(aa) == 3 %Saccade immediately coming out of a blink
 
-    i = find((SaccS(aa) - 2) == DropE)
-    DropE(i) = SaccE(aa);
+    i = find((SaccS(aa) - 2) == DropE);
+    DropE(i) = SaccS(aa);
     
 end
 end
 
-SaccS(find(SaccS~=0)) = [];
-SaccE(find(SaccE(~=0)) = [
+SaccS(find(ToDropS~=0)) = [];
+SaccE(find(ToDropS~=0)) = [];
 
 

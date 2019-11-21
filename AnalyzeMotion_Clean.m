@@ -12,10 +12,10 @@ ManualWin = 0.25; %Window for manual checking function (as a percentage of the t
 FiltWindow = 51; %Window for loess filter (Lower value = less smoothing/more false positives for saccades)
 
 ShowSep = 1; %Plot Saccade,Drift,Blink seperation
-Manual_Check = 0; %Manually check abnormal drift traces
+Manual_Check = 1; %Manually check abnormal drift traces
 CorrectTorsion = 0; %Correct torsion
 Analyze_Fourier = 0; %Analyze spectral properties of drifts (Unavailable, need to update to pmtm method from Welsch)
-AnalyzeMetrics = 1; %Analyze metrics of eye motion and generate plots
+AnalyzeMetrics = 0; %Analyze metrics of eye motion and generate plots
 Save_On = 0; %Save workspace in directory
 Load_Demarcation = 0; %Load eye trace demarcation from processed file
 
@@ -88,16 +88,23 @@ if ~Load_Demarcation
 end
 
 %Find incorrectly labeled blinks/saccades
-[SaccS,SaccE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy);
+[SaccS,SaccE,NewRs,NewRe,DropS,DropE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy);
 
 
 %Manually Check for missed saccades
 if ~Load_Demarcation
     if Manual_Check
-        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE,ManualWin);
+        
+        DropStmp = sort([DropS;NewRs]); %Blinks including auto-rejected
+        DropEtmp = sort([DropE;NewRe]); %Blinks including auto-rejected
+        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropStmp,DropEtmp,ManualWin);
+        
     else
         RejectedS = []; RejectedE = [];
     end
+    
+    RejectedS = sort([RejectedS,NewRs]);
+    RejectedE = sort([RejectedE,NewRe]);
 
 
 %drop negative values and NaN values (some sort of bug?).
@@ -211,7 +218,7 @@ if ShowSep == 1
     end
     
     
-    if Manual_Check
+    if exist('RejectedS')
         for aa = 1:length(RejectedS)
             H = fill([RejectedS(aa) RejectedE(aa) RejectedE(aa) RejectedS(aa)],...
                 [max(Yh) max(Yh) min(Yh) min(Yh)],'k');
