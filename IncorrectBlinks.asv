@@ -1,0 +1,78 @@
+function IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy)
+
+%Find "Blinks" inside saccades and mark whole thing as rejected
+
+ToDropS = zeros(1,length(SaccS)); %Initialize
+ToDropB = zeros(1,length(DropS));
+NewRs = []; NewRe = [];
+
+for aa = 1:length(SaccS)
+    
+    CurrS = SaccS(aa):SaccE(aa); %Current saccade
+    CurrS = CurrS(:); %Columnate
+    
+    if ~isempty(intersect(DropS,CurrS)) %Blink within saccade
+        
+        BadBlinks = intersect(DropS,CurrS); %All blinks within current S
+        ToDropS(aa) = 1; %Delete Marker
+        
+        %Drop all blinks within saccade
+        for bb = 1:length(BadBlinks)
+            CurrB = find(BadBlinks(bb) == DropS); %Index for DropS
+            ToDropB(CurrB) = 1; %Drop blink
+        end
+        
+    else
+        
+    end
+    
+    
+    
+    %Find Saccades near or within Blinks and expand blink
+    
+    if ~isempty(find( (SaccE(aa) + 1) == DropS )) && ...
+            isempty(find( (SaccS(aa) - 2) == DropE )) %Saccade ending on a blink but not starting
+        ToDropS(aa) = 2; %Move blink start marker
+    end
+    
+    if ~isempty(find( (SaccS(aa) - 2) == DropE )) && ...
+            isempty(find( (SaccE(aa) + 1) == DropS )) %Saccade immediately coming out of a blink
+    ToDropS(aa) = 3; %Move blink end marker
+    end
+    
+    if ~isempty(find( (SaccE(aa) + 1) == DropS )) && ...
+            ~isempty(find( (SaccS(aa) - 2) == DropE ))  %Seperate saccade fully encapsulated by blink
+    ToDropS(aa) = 1; %Delete Marker
+    end
+    
+    
+    
+end
+
+for aa = 1:length(ToDropS);
+
+if ToDropS(aa) == 1
+
+NewRs = [SaccS(aa) NewRs]; NewRe = [SaccE(aa) NewRe];
+
+end
+
+if ToDropS(aa) == 2
+   
+ i = find((SaccE(aa) + 1) == DropS);
+ DropS(i) = SaccS(aa);
+ 
+end
+
+if ToDropS(aa) == 3
+
+    i = find((SaccS(aa) - 2) == DropE)
+    DropE(i) = SaccE(aa);
+    
+end
+end
+
+SaccS(find(SaccS~=0)) = [];
+SaccE(find(SaccE(~=0)) = [
+
+

@@ -1,9 +1,9 @@
-clc; clear all; close all;
+clc; clear all; %close all;
 %% Initialize
 
 %Adjust parameters below by hand as desired before running
-Directory = 'C:\Users\noric\Desktop\Science_Stuff\FEM Study_Sam\Data\20109'; %Directory of .mat file(s)
-Curr_File = '20109R_D_005';  %Name of .mat file
+Directory = 'G:\My Drive\PRL_project\aoslo_data\20196L\10_4_2019_18_28_57'; %Directory of .mat file(s)
+Curr_File = '20196L_004_nostim_meanrem_960_hz_1684';  %Name of .mat file
 
 %Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). sa FieldSize(Arc)/512 = PxArcmin.
 PPD = 570; % Pixels per degree
@@ -86,6 +86,10 @@ if ~Load_Demarcation
         warning(sprintf('\nSaccades not separated, using entire trace\n'));
     end
 end
+
+%Find incorrectly labeled blinks/saccades
+[SaccS,SaccE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy);
+
 
 %Manually Check for missed saccades
 if ~Load_Demarcation

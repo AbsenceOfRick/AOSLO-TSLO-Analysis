@@ -79,6 +79,10 @@ tmp = find(BadE - BadS < MinLength);
 BadS(tmp) = []; BadE(tmp) = [];
 
 
+%% Find blinks that were inside saccades
+
+
+
 
 % % Uncomment below in order to check original x stream vs adjusted x stream
 % figure;
