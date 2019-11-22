@@ -1,12 +1,11 @@
-clc; clear all; close all;
+clc; clear all; %close all;
 %% Initialize
 
 %Adjust parameters below by hand as desired before running
-%Directory = '/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57'; %Directory of .mat file(s)
-%Curr_File = '20196L_001_nostim_meanrem_960_hz_1029';
 
-[Curr_File Directory] = uigetfile('/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57/*.mat',...
-    'select eye trace as mat file');
+
+Directory = 'G:\My Drive\PRL_project\aoslo_data\20196L\10_4_2019_18_28_57'; %Directory of .mat file(s)
+Curr_File = '20196L_004_nostim_meanrem_960_hz_1684';  %Name of .mat file
 
 %Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). sa FieldSize(Arc)/512 = PxArcmin.
 PPD = 569;%570; % Pixels per degree
@@ -94,6 +93,8 @@ end
 %Find incorrectly labeled blinks/saccades
 [SaccS,SaccE,autoRejS,autoRejE,DropS,DropE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy);
 
+
+
 %Manually Check for missed saccades
 if ~Load_Demarcation
     if Manual_Check
@@ -102,12 +103,15 @@ if ~Load_Demarcation
          %DropStmp = sort([DropS;NewRs]); %Blinks including auto-rejected
          %DropEtmp = sort([DropE;NewRe]); %Blinks including auto-rejected
          %[SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropStmp,DropEtmp,ManualWin);
+
     else
         RejectedS = []; 
         RejectedE = [];
     end
+    
     RejectedS = sort([RejectedS;autoRejS]);
     RejectedE = sort([RejectedE;autoRejE]);
+
 
 %drop negative values and NaN values (some sort of bug?).
 
@@ -220,7 +224,9 @@ if ShowSep == 1
     end
     
     
+
     if exist('RejectedS')%if Manual_Check
+
         for aa = 1:length(RejectedS)
             H = fill([RejectedS(aa) RejectedE(aa) RejectedE(aa) RejectedS(aa)],...
                 [max(Yh) max(Yh) min(Yh) min(Yh)],'k');
