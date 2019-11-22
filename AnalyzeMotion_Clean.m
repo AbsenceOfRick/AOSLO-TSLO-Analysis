@@ -7,12 +7,7 @@ clc; clear all; close all;
 
 [Curr_File Directory] = uigetfile('/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57/*.mat',...
     'select eye trace as mat file');
-% 10003L
-%'10003L_001_nostim_meanrem_960_hz_6587';
-%'10003L_004_nostim_meanrem_960_hz_6025';
-%'10003L_003_nostim_meanrem_960_hz_7889';
-%'10003L_001_nostim_meanrem_960_hz_8742';
-%'10003L_001_nostim_meanrem_960_hz_3811';
+
 %Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). sa FieldSize(Arc)/512 = PxArcmin.
 PPD = 569;%570; % Pixels per degree
 PxArcmin = ( (512/PPD) * 60 ) / 512; %Pixel to Arcmin Conversion (arcmin in 1 pixel)
@@ -96,74 +91,23 @@ if ~Load_Demarcation
     end
 end
 
-% JG addition: replace saccades including at least a blink as a blink:
-%{
-if ~Load_Demarcation
-    if ~isempty(SaccS)
-        i=1;
-        while i<=length(SaccS)
-            
-            
-            %i=i+1;
-        end
-    end
-end
-%}
-% JG addition: fuse saccade before and after blink as same blink:
-if ~Load_Demarcation
-    if ~isempty(SaccS)
-        % find saccades followed by blink, 
-        %{
-        j=1;
-        while j<=length(SaccE)
-            i=1;
-            while i<=length(DropS)
-                if DropS(i)==SaccE(j)+1 %|| DropS(i)-1==SaccE(j)
-                    %then extend Blink and remove Sacc
-                    DropS(i)=SaccS(j);
-                    SaccS(j)=[];
-                    SaccE(j)=[];
-                    j=j-1;
-                    %continue;% go to next saccade
-                end
-                i=i+1;
-            end
-            j=j+1;
-        end
-        %}
-        %{
-        % TO DO then fuse blink
-        
-        
-        %}
-            %{
-        % and blink followed by saccades
-        i=1;
-        while i<=length(DropE)
-            j=1;
-            while j<=length(SaccE)
-                if DropE(i)==SaccS(j)+1 %then  extend Blink and remove Sacc
-                    DropE(i)=SaccE(j);
-                    SaccS(j)=[];
-                    SaccE(j)=[];
-                    %continue;% go to next saccade
-                end
-                j=j+1;
-            end
-            i=i+1;
-        end
-        %}
-    end
-end
+%Find incorrectly labeled blinks/saccades
+[SaccS,SaccE,autoRejS,autoRejE,DropS,DropE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy);
 
 %Manually Check for missed saccades
 if ~Load_Demarcation
     if Manual_Check
-        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE,ManualWin);
+         % to continue to update the figure with color for auto-rejected
+        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE, autoRejS, autoRejE,ManualWin);%
+         %DropStmp = sort([DropS;NewRs]); %Blinks including auto-rejected
+         %DropEtmp = sort([DropE;NewRe]); %Blinks including auto-rejected
+         %[SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropStmp,DropEtmp,ManualWin);
     else
-        RejectedS = []; RejectedE = [];
+        RejectedS = []; 
+        RejectedE = [];
     end
-
+    RejectedS = sort([RejectedS;autoRejS]);
+    RejectedE = sort([RejectedE;autoRejE]);
 
 %drop negative values and NaN values (some sort of bug?).
 
@@ -276,7 +220,7 @@ if ShowSep == 1
     end
     
     
-    if Manual_Check
+    if exist('RejectedS')%if Manual_Check
         for aa = 1:length(RejectedS)
             H = fill([RejectedS(aa) RejectedE(aa) RejectedE(aa) RejectedS(aa)],...
                 [max(Yh) max(Yh) min(Yh) min(Yh)],'k');

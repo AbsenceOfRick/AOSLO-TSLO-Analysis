@@ -30,6 +30,8 @@
 % Drift ends
 % Blink/dropped starts
 % Blink/dropped ends
+% Auto-rejected starts
+% Auto-rejected ends
 % Window size (as percentage of total trace)
 %
 % Output:
@@ -44,7 +46,7 @@
 % Old drift starts
 % Old drift ends
 
-function [AllSs,AllSe,Rs,Re,AllDs,AllDe,Ss,Se,Ds,De] = ManualCheck(xx,yy,SPF,Ss,Se,Ds,De,Bs,Be,MW)
+function [AllSs,AllSe,Rs,Re,AllDs,AllDe,Ss,Se,Ds,De] = ManualCheck(xx,yy,SPF,Ss,Se,Ds,De,Bs,Be,ARs,ARe,MW)
 %% Initialize
 
 %Initialize new indices (Just pad with zerosfor now)
@@ -78,11 +80,12 @@ while aa < length(Ws)
     Sstmp = Ss(find(Ss<We(aa) & Ss>=Ws(aa))); Setmp = Se(find(Se<We(aa) & Se>=Ws(aa))); %Curr saccades
     Dstmp = Ds(find(Ds<We(aa) & Ds>=Ws(aa))); Detmp = De(find(De<We(aa) & De>=Ws(aa))); %Curr drifts
     Bstmp = Bs(find(Bs<We(aa) & Bs>=Ws(aa))); Betmp = Be(find(Be<We(aa) & Be>=Ws(aa))); %Curr blinks
+    ARstmp = ARs(find(ARs<We(aa) & ARs>=Ws(aa))); ARetmp = ARe(find(ARe<We(aa) & ARe>=Ws(aa))); %Curr auto-rejected
     
     %Force it to be vertical arrays for later concatentations
     Sstmp = Sstmp(:)-WinAdj; Setmp = Setmp(:)-WinAdj; Dstmp = Dstmp(:)-WinAdj;
     Detmp = Detmp(:)-WinAdj; Bstmp = Bstmp(:)-WinAdj; Betmp = Betmp(:)-WinAdj;
-    
+    ARstmp= ARstmp(:)-WinAdj;ARetmp= ARetmp(:)-WinAdj;
     
     if  Sstmp(1)>Setmp(1) %Saccades
         Sstmp = [1;Sstmp];
@@ -104,6 +107,15 @@ while aa < length(Ws)
         end
         if Betmp(end)<Bstmp(end)
             Betmp(end+1) = length(xx(Ws(aa):We(aa)));
+        end
+    end
+    
+    if ~isempty(ARstmp)
+        if  ARstmp(1)>ARetmp(1) %Previously auto-rejected
+            ARstmp = [1;ARstmp];
+        end
+        if ARetmp(end)<ARstmp(end)
+            ARetmp(end+1) = length(xx(Ws(aa):We(aa)));
         end
     end
     
@@ -186,6 +198,14 @@ while aa < length(Ws)
             set(H, 'FaceAlpha', 0.1,'EdgeAlpha',0); hold on;
         end
     end
+    
+    for bb = 1:length(ARstmp) %Previously Auto-rejected
+        try
+            H = fill([ARstmp(bb) ARetmp(bb) ARetmp(bb) ARstmp(bb)],[max(Yh1) max(Yh1) min(Yh1) min(Yh1)],'g');
+            set(H, 'FaceAlpha', 0.4,'EdgeAlpha',0); hold on;
+        end
+    end
+    
     hold off
     
     SP2 = subplot(2,1,2);
@@ -219,6 +239,13 @@ while aa < length(Ws)
         try
             H = fill([Dstmp(bb) Detmp(bb) Detmp(bb) Dstmp(bb)],[max(Yh2) max(Yh2) min(Yh2) min(Yh2)],'c');
             set(H, 'FaceAlpha', 0.1,'EdgeAlpha',0); hold on;
+        end
+    end
+    
+    for bb = 1:length(ARstmp) %Drifts
+        try
+            H = fill([ARstmp(bb) ARetmp(bb) ARetmp(bb) ARstmp(bb)],[max(Yh2) max(Yh2) min(Yh2) min(Yh2)],'k');
+            set(H, 'FaceAlpha', 0.4,'EdgeAlpha',0); hold on;
         end
     end
     hold off
