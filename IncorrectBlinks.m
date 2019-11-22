@@ -53,7 +53,7 @@ for aa = 1:length(ToDropS)
 
 if ToDropS(aa) == 1 %B in S or S in B, simply mark as deleted
 
-NewRs = [SaccS(aa);NewRs]; NewRe = [SaccE(aa);NewRe];
+NewRs = [NewRs;SaccS(aa)]; NewRe = [NewRe;SaccE(aa)];
 
 end
 
@@ -74,5 +74,30 @@ end
 
 SaccS(find(ToDropS~=0)) = [];
 SaccE(find(ToDropS~=0)) = [];
+DropS(find(ToDropB~=0)) = [];
+DropE(find(ToDropB~=0)) = [];
+
+
+
+DropRejS = intersect(DropS-1,NewRe);
+DropRejE = intersect(DropE+2,NewRs);
+ToDropBs = zeros(1,length(DropS));
+ToDropBe = zeros(1,length(DropE));
+
+for aa = 1:length(DropRejS)
+
+ToDropRej(aa) = find(NewRe == DropRejS(aa));
+
+ToDropBs(find(DropRejS(aa) == DropS-1)) = 1;
+ToDropBe(find(DropRejE(aa) == DropE+2)) = 1;
+
+end
+
+NewRs(ToDropRej) = [];
+NewRe(ToDropRej) = [];
+DropS(find(ToDropBs)) = [];
+DropE(find(ToDropBe)) = [];
+
+
 
 

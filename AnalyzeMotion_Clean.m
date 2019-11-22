@@ -94,11 +94,7 @@ end
 %Manually Check for missed saccades
 if ~Load_Demarcation
     if Manual_Check
-        
-        DropStmp = sort([DropS;NewRs]); %Blinks including auto-rejected
-        DropEtmp = sort([DropE;NewRe]); %Blinks including auto-rejected
-        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropStmp,DropEtmp,ManualWin);
-        
+              [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE,ManualWin);
     else
         RejectedS = []; RejectedE = [];
     end
