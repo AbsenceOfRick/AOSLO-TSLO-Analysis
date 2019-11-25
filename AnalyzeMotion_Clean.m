@@ -19,7 +19,7 @@ Manual_Check = 1; %Manually check abnormal drift traces
 CorrectTorsion = 0; %Correct torsion
 Analyze_Fourier = 0; %Analyze spectral properties of drifts (Unavailable, need to update to pmtm method from Welsch)
 AnalyzeMetrics = 0; %Analyze metrics of eye motion and generate plots
-Save_On = 0; %Save workspace in directory
+Save_On = 1; %Save workspace in directory
 Load_Demarcation = 0; %Load eye trace demarcation from processed file
 
 %load(sprintf('%s/%s.mat',Directory,Curr_File)); %Load
@@ -98,7 +98,7 @@ end
 if ~Load_Demarcation
     if Manual_Check
          % to continue to update the figure with color for auto-rejected
-        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE, autoRejS, autoRejE,ManualWin);%
+        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheckPlus(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE, autoRejS, autoRejE,ManualWin,XFilt,YFilt);%
          %DropStmp = sort([DropS;NewRs]); %Blinks including auto-rejected
          %DropEtmp = sort([DropE;NewRe]); %Blinks including auto-rejected
          %[SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropStmp,DropEtmp,ManualWin);
@@ -106,12 +106,19 @@ if ~Load_Demarcation
         RejectedS = []; 
         RejectedE = [];
     end
+    if ~iscolumn(RejectedS) %JG ---------to commmit
+        RejectedS=RejectedS';
+        RejectedE=RejectedE';
+    end
     RejectedS = sort([RejectedS;autoRejS]);
     RejectedE = sort([RejectedE;autoRejE]);
 
 %drop negative values and NaN values (some sort of bug?).
 
 Dstmp = DriftS; Detmp = DriftE;
+if length(DriftE)~=length(DriftS)
+    fprintf('Problem: not same length\n');
+end
 Dstmp(find((DriftE-DriftS)<=1)) = [];
 Detmp(find((DriftE-DriftS)<=1)) = [];
 tmp = find(isnan(Dstmp) | isnan(Detmp) );

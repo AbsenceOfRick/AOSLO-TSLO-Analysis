@@ -75,7 +75,8 @@ DropE(find(ToDropB~=0))=[];
  DropRejE = intersect(DropE+2,NewRs);
  ToDropBs = zeros(1,length(DropS));
  ToDropBe = zeros(1,length(DropE));
-
+ ToDropRej= zeros(1,length(DropRejS));
+ 
  for aa = 1:length(DropRejS)
 
  ToDropRej(aa) = find(NewRe == DropRejS(aa));
@@ -85,13 +86,15 @@ DropE(find(ToDropB~=0))=[];
 
  end
 
- NewRs(ToDropRej) = [];
- NewRe(ToDropRej) = [];
- DropS(find(ToDropBs)) = [];
- DropE(find(ToDropBe)) = [];
+ if ~isempty(ToDropRej)
+    NewRs(ToDropRej) = [];
+    NewRe(ToDropRej) = [];
+ end
 
-%intersect(DropE+2,NewRs);
-%intersect(DropS-1,NewRe);
+DropS(find(ToDropBs)) = [];
+DropE(find(ToDropBe)) = [];
+
+
 
 
 
