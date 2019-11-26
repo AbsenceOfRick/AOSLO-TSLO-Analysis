@@ -86,11 +86,13 @@ while aa < length(Ws)
     Sstmp = Sstmp(:)-WinAdj; Setmp = Setmp(:)-WinAdj; Dstmp = Dstmp(:)-WinAdj;
     Detmp = Detmp(:)-WinAdj; Bstmp = Bstmp(:)-WinAdj; Betmp = Betmp(:)-WinAdj;
     ARstmp= ARstmp(:)-WinAdj;ARetmp= ARetmp(:)-WinAdj;
+
     
     if length(Dstmp)~=Detmp
         fprintf('Number of Drift starts and endings different\n');
         beep;
      end
+
     
     if  Sstmp(1)>Setmp(1) %Saccades
         Sstmp = [1;Sstmp];
@@ -148,7 +150,9 @@ while aa < length(Ws)
     UIPH_Fig = uipanel('BackGroundColor','white','Position',[0 0.2 1 .8], ...
         'Title',sprintf('Window %d/%d, %d Samples',aa,length(Ws),MW));
     
+
     UIPH = uipanel('BackgroundColor','white','Position',[.59 0 .2 .2]); %Panel for buttons & 2D plot.
+
     
     %Make Selection Button
     UIH_Select = uicontrol('parent',UIPH,'style','pushbutton','string','Make Selection','BackgroundColor',[.1,.1,.1],...
@@ -206,7 +210,9 @@ while aa < length(Ws)
     for bb = 1:length(ARstmp) %Previously Auto-rejected
         try
             H = fill([ARstmp(bb) ARetmp(bb) ARetmp(bb) ARstmp(bb)],[max(Yh1) max(Yh1) min(Yh1) min(Yh1)],'k');
-            set(H, 'FaceAlpha', 0.3,'EdgeAlpha',0); hold on;
+
+            set(H, 'FaceAlpha', 0.4,'EdgeAlpha',0); hold on;
+
         end
     end
     
@@ -246,10 +252,12 @@ while aa < length(Ws)
         end
     end
     
-    for bb = 1:length(ARstmp) %Auto-rejected
+
+    for bb = 1:length(ARstmp) %Drifts
         try
             H = fill([ARstmp(bb) ARetmp(bb) ARetmp(bb) ARstmp(bb)],[max(Yh2) max(Yh2) min(Yh2) min(Yh2)],'k');
-            set(H, 'FaceAlpha', 0.3,'EdgeAlpha',0); hold on;
+            set(H, 'FaceAlpha', 0.4,'EdgeAlpha',0); hold on;
+
         end
     end
     hold off
