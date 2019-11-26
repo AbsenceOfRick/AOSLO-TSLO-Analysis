@@ -2,11 +2,13 @@ clc; clear all; %close all;
 %% Initialize
 
 %Adjust parameters below by hand as desired before running
-Directory = 'G:\My Drive\PRL_project\aoslo_data\20196L\10_4_2019_18_28_57'; %Directory of .mat file(s)
-Curr_File = '20196L_004_nostim_meanrem_960_hz_1684';  %Name of .mat file
+
+
+Directory = 'G:\My Drive\PRL_project\aoslo_data\20109R\10_18_2019_17_19_17\'; %Directory of .mat file(s)
+Curr_File = '20109R_001_nostim_meanrem_960_hz_1013';  %Name of .mat file
 
 %Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). sa FieldSize(Arc)/512 = PxArcmin.
-PPD = 570; % Pixels per degree
+PPD = 569;%570; % Pixels per degree
 PxArcmin = ( (512/PPD) * 60 ) / 512; %Pixel to Arcmin Conversion (arcmin in 1 pixel)
 ManualWin = 0.25; %Window for manual checking function (as a percentage of the total trace)
 FiltWindow = 51; %Window for loess filter (Lower value = less smoothing/more false positives for saccades)
@@ -19,7 +21,8 @@ AnalyzeMetrics = 0; %Analyze metrics of eye motion and generate plots
 Save_On = 0; %Save workspace in directory
 Load_Demarcation = 0; %Load eye trace demarcation from processed file
 
-load(sprintf('%s/%s.mat',Directory,Curr_File)); %Load
+%load(sprintf('%s/%s.mat',Directory,Curr_File)); %Load
+load(sprintf('%s%s',Directory,Curr_File));
 
 if Load_Demarcation %Load previous demarcations
     File_Name = sprintf('%s/%s.mat',Directory,sprintf('%s_Processed',Curr_File));
@@ -88,19 +91,26 @@ if ~Load_Demarcation
 end
 
 %Find incorrectly labeled blinks/saccades
-[SaccS,SaccE,NewRs,NewRe,DropS,DropE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy);
+[SaccS,SaccE,autoRejS,autoRejE,DropS,DropE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy);
+
 
 
 %Manually Check for missed saccades
 if ~Load_Demarcation
     if Manual_Check
-              [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE,ManualWin);
+         % to continue to update the figure with color for auto-rejected
+        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE, autoRejS, autoRejE,ManualWin);%
+         %DropStmp = sort([DropS;NewRs]); %Blinks including auto-rejected
+         %DropEtmp = sort([DropE;NewRe]); %Blinks including auto-rejected
+         %[SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropStmp,DropEtmp,ManualWin);
+
     else
-        RejectedS = []; RejectedE = [];
+        RejectedS = []; 
+        RejectedE = [];
     end
     
-    RejectedS = sort([RejectedS,NewRs]);
-    RejectedE = sort([RejectedE,NewRe]);
+    RejectedS = sort([RejectedS;autoRejS]);
+    RejectedE = sort([RejectedE;autoRejE]);
 
 
 %drop negative values and NaN values (some sort of bug?).
@@ -214,7 +224,9 @@ if ShowSep == 1
     end
     
     
-    if exist('RejectedS')
+
+    if exist('RejectedS')%if Manual_Check
+
         for aa = 1:length(RejectedS)
             H = fill([RejectedS(aa) RejectedE(aa) RejectedE(aa) RejectedS(aa)],...
                 [max(Yh) max(Yh) min(Yh) min(Yh)],'k');

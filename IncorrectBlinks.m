@@ -12,21 +12,16 @@ for aa = 1:length(SaccS)
     CurrS = CurrS(:); %Columnate
     
     if ~isempty(intersect(DropS,CurrS)) %Blink within saccade
-        
+
         BadBlinks = intersect(DropS,CurrS); %All blinks within current S
         ToDropS(aa) = 1; %Delete Marker
-        
+
         %Drop all blinks within saccade
         for bb = 1:length(BadBlinks)
             CurrB = find(BadBlinks(bb) == DropS); %Index for DropS
             ToDropB(CurrB) = 1; %Drop blink
         end
-        
-    else
-        
     end
-    
-    
     
     %Find Saccades near or within Blinks and expand blink
     if ~isempty(find( (SaccE(aa) + 1) == DropS )) && ...
@@ -36,16 +31,16 @@ for aa = 1:length(SaccS)
     
     if ~isempty(find( (SaccS(aa) - 2) == DropE )) && ...
             isempty(find( (SaccE(aa) + 1) == DropS )) %Saccade immediately coming out of a blink
-    ToDropS(aa) = 3; %Move blink end marker
+
+        ToDropS(aa) = 3; %Move blink end marker
+
     end
     
     if ~isempty(find( (SaccE(aa) + 1) == DropS )) && ...
             ~isempty(find( (SaccS(aa) - 2) == DropE ))  %Seperate saccade fully encapsulated by blink
     ToDropS(aa) = 1; %Delete Marker
     end
-    
-    
-    
+
 end
 
 %Reindex rejected values
@@ -83,6 +78,7 @@ DropRejS = intersect(DropS-1,NewRe);
 DropRejE = intersect(DropE+2,NewRs);
 ToDropBs = zeros(1,length(DropS));
 ToDropBe = zeros(1,length(DropE));
+ToDropRej = [];
 
 for aa = 1:length(DropRejS)
 
