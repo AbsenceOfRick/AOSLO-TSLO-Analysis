@@ -69,6 +69,10 @@ We = [We length(xx)];
 SampRate=960;
 vel=[diff(XFilt).*SampRate./60, diff(YFilt).*SampRate./60];% for deg/s speed
 pythVel=abs(diff(sqrt(XFilt.^ 2 + YFilt.^ 2) .* SampRate))/60;
+
+vel=[vel(1,:);vel];
+pythVel=[pythVel(1); pythVel];
+
 %% Display GUI for Windows over entire trace
 aa=0; RIdx = []; Cnt = 0; MarkEnd = 1;
 while aa < length(Ws)
@@ -92,7 +96,8 @@ while aa < length(Ws)
    %% JG add
     if length(Dstmp)~=length(Detmp)
         fprintf([ num2str(aa) '/' num2str(length(Ws)) ': Number of Drift starts and endings different BEFORE processing of first and last elements\n']);
-        beep;
+
+
     end
     
     if  Sstmp(1)>Setmp(1) %Saccades
@@ -432,7 +437,9 @@ NewSe(find(NewSe == 0)) = NaN; NewSe = NewSe + AdjVals;
 Re(find(isnan(Re))) = []; NewSe(find(isnan(NewSe))) = [];
 
 AllDs = Ds(:); AllDe = De(:); AllSs = Ss(:); AllSe = Se(:);
-NewSse=[];%JGadd
+
+%NewSse=[];%JGadd TO DO 
+
 %Add new saccades and adjust drifts appropriately
 if ~isempty(NewSs)
     for ii = 1:length(NewSs)
@@ -447,7 +454,8 @@ if ~isempty(NewSs)
         
         %JS EDITS: Get all the values withing these newly identified
         %saccades
-        NewSse=[NewSse;AllSs(aa):AllSe(aa)];%JGadd
+        %NewSse=[NewSse;AllSs(aa):AllSe(aa)];%JGadd TO DO
+
         
     end
     
