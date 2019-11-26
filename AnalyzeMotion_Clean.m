@@ -1,11 +1,14 @@
-clc; clear all; %close all;
+clc; clear all; close all;
 %% Initialize
 
 %Adjust parameters below by hand as desired before running
 
+%Directory = '/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57'; %Directory of .mat file(s)
+%Curr_File = '20196L_001_nostim_meanrem_960_hz_1029';
 
-Directory = 'G:\My Drive\PRL_project\aoslo_data\20109R\10_18_2019_17_19_17\'; %Directory of .mat file(s)
-Curr_File = '20109R_001_nostim_meanrem_960_hz_1013';  %Name of .mat file
+[Curr_File Directory] = uigetfile('/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57/*.mat',...
+    'select eye trace as mat file');
+
 
 %Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). sa FieldSize(Arc)/512 = PxArcmin.
 PPD = 569;%570; % Pixels per degree
@@ -18,7 +21,7 @@ Manual_Check = 1; %Manually check abnormal drift traces
 CorrectTorsion = 0; %Correct torsion
 Analyze_Fourier = 0; %Analyze spectral properties of drifts (Unavailable, need to update to pmtm method from Welsch)
 AnalyzeMetrics = 0; %Analyze metrics of eye motion and generate plots
-Save_On = 0; %Save workspace in directory
+Save_On = 1; %Save workspace in directory
 Load_Demarcation = 0; %Load eye trace demarcation from processed file
 
 %load(sprintf('%s/%s.mat',Directory,Curr_File)); %Load
@@ -94,12 +97,12 @@ end
 [SaccS,SaccE,autoRejS,autoRejE,DropS,DropE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy);
 
 
-
 %Manually Check for missed saccades
 if ~Load_Demarcation
     if Manual_Check
          % to continue to update the figure with color for auto-rejected
-        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE, autoRejS, autoRejE,ManualWin);%
+
+        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheckPlus(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE, autoRejS, autoRejE,ManualWin,XFilt,YFilt);%
          %DropStmp = sort([DropS;NewRs]); %Blinks including auto-rejected
          %DropEtmp = sort([DropE;NewRe]); %Blinks including auto-rejected
          %[SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropStmp,DropEtmp,ManualWin);
@@ -108,14 +111,21 @@ if ~Load_Demarcation
         RejectedS = []; 
         RejectedE = [];
     end
-    
+
+    if ~iscolumn(RejectedS)%if line vector instead of column vector % -------------------------------------JG to commit
+        RejectedS=RejectedS';
+        RejectedE=RejectedE';
+    end
     RejectedS = sort([RejectedS;autoRejS]);
     RejectedE = sort([RejectedE;autoRejE]);
-
 
 %drop negative values and NaN values (some sort of bug?).
 
 Dstmp = DriftS; Detmp = DriftE;
+if length(DriftS)~=length(DriftE)% -----------JG to commit
+   fprintf('error, different sizes of vector\n'); 
+    
+end
 Dstmp(find((DriftE-DriftS)<=1)) = [];
 Detmp(find((DriftE-DriftS)<=1)) = [];
 tmp = find(isnan(Dstmp) | isnan(Detmp) );
@@ -222,7 +232,6 @@ if ShowSep == 1
         H = fill([DriftS(aa) DriftE(aa) DriftE(aa) DriftS(aa)],[max(Yh) max(Yh) min(Yh) min(Yh)],'c');
         set(H, 'FaceAlpha', 0.2,'EdgeAlpha',0); hold on;
     end
-    
     
 
     if exist('RejectedS')%if Manual_Check

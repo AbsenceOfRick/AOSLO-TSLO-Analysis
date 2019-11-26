@@ -46,7 +46,7 @@
 % Old drift starts
 % Old drift ends
 
-function [AllSs,AllSe,Rs,Re,AllDs,AllDe,Ss,Se,Ds,De] = ManualCheck(xx,yy,SPF,Ss,Se,Ds,De,Bs,Be,ARs,ARe,MW)
+function [AllSs,AllSe,Rs,Re,AllDs,AllDe,Ss,Se,Ds,De] = ManualCheck(xx,yy,SPF,Ss,Se,Ds,De,Bs,Be,ARs,ARe,MW,XFilt,YFilt)
 %% Initialize
 
 %Initialize new indices (Just pad with zerosfor now)
@@ -66,7 +66,9 @@ We = Ws - 1;
 We(1) = [];
 We = [We length(xx)];
 
-
+SampRate=960;
+vel=[diff(XFilt).*SampRate./60, diff(YFilt).*SampRate./60];% for deg/s speed
+pythVel=abs(diff(sqrt(XFilt.^ 2 + YFilt.^ 2) .* SampRate))/60;
 %% Display GUI for Windows over entire trace
 aa=0; RIdx = []; Cnt = 0; MarkEnd = 1;
 while aa < length(Ws)
@@ -86,13 +88,12 @@ while aa < length(Ws)
     Sstmp = Sstmp(:)-WinAdj; Setmp = Setmp(:)-WinAdj; Dstmp = Dstmp(:)-WinAdj;
     Detmp = Detmp(:)-WinAdj; Bstmp = Bstmp(:)-WinAdj; Betmp = Betmp(:)-WinAdj;
     ARstmp= ARstmp(:)-WinAdj;ARetmp= ARetmp(:)-WinAdj;
-
     
-    if length(Dstmp)~=Detmp
-        fprintf('Number of Drift starts and endings different\n');
+   %% JG add
+    if length(Dstmp)~=length(Detmp)
+        fprintf([ num2str(aa) '/' num2str(length(Ws)) ': Number of Drift starts and endings different BEFORE processing of first and last elements\n']);
         beep;
-     end
-
+    end
     
     if  Sstmp(1)>Setmp(1) %Saccades
         Sstmp = [1;Sstmp];
@@ -126,6 +127,11 @@ while aa < length(Ws)
         end
     end
     
+    if length(Dstmp)~=length(Detmp)
+        fprintf([ num2str(aa) '/' num2str(length(Ws)) ': Number of Drift starts and endings different AFTER processing of first and last elements\n']);
+        beep;
+    end
+    
     %     %Event starting in one window and ending in another
     %     if length(Bstmp) ~= length(Betmp) && Bstmp(end)>Betmp(end) %Blinks
     %         Betmp(end+1) = length(xx(Ws(aa):We(aa)));
@@ -147,40 +153,41 @@ while aa < length(Ws)
     
     %Make UI Panels and Buttons
     figure('units','normalized','position',[.1 .1 .7 .7]); %open figure
-    UIPH_Fig = uipanel('BackGroundColor','white','Position',[0 0.2 1 .8], ...
+    UIPH_Fig = uipanel('BackGroundColor','white','Position',[0 0.0 .85 1], ...
         'Title',sprintf('Window %d/%d, %d Samples',aa,length(Ws),MW));
     
-
-    UIPH = uipanel('BackgroundColor','white','Position',[.59 0 .2 .2]); %Panel for buttons & 2D plot.
-
+    UIPH = uipanel('BackgroundColor','white','Position',[.85 0.35 .15 .3]); %Panel for buttons & 2D plot.
+    
+    UIPH_2D =    uipanel('BackgroundColor','white','Position',[.85 0.65 .15 .35]);
+    UIPH_2Dspeed=uipanel('BackgroundColor','white','Position',[.85 0.0 .15 .35]);
     
     %Make Selection Button
     UIH_Select = uicontrol('parent',UIPH,'style','pushbutton','string','Make Selection','BackgroundColor',[.1,.1,.1],...
-        'units','normalized','position',[.01 .61 .49 .3],'Fontsize',16,'ForeGroundColor','w','CallBack',{@UserR});
+        'units','normalized','position',[.01 .61 .49 .3],'Fontsize',12,'ForeGroundColor','w','CallBack',{@UserR});
     %Make Next Button
     UIH_Next = uicontrol('parent',UIPH,'style','pushbutton','string','Next','BackgroundColor',[.8,.8,.8],...
-        'units','normalized','position',[.49 .61 .49 .3],'Fontsize',16,'ForeGroundColor','k','CallBack',{@UserR});
+        'units','normalized','position',[.49 .61 .49 .3],'Fontsize',12,'ForeGroundColor','k','CallBack',{@UserR});
     %Accept Button
     UIH_Sacc = uicontrol('parent',UIPH,'style','pushbutton','string','Mark Saccade','BackgroundColor',[.2,.7,.2],...
-        'units','normalized','position',[.01 .31 .49 .3],'Fontsize',16,'CallBack',{@UserR});
+        'units','normalized','position',[.01 .31 .49 .3],'Fontsize',12,'CallBack',{@UserR});
     %Reject Button
     UIH_Reject = uicontrol('parent',UIPH,'style','pushbutton','string','Mark Rejected','BackgroundColor',[.7,.2,.2], ...
-        'units','normalized','position',[.49 .31 .49 .3],'Fontsize',16,'CallBack',{@UserR});
+        'units','normalized','position',[.49 .31 .49 .3],'Fontsize',12,'CallBack',{@UserR});
     %Reset Button
     UIH_Reset = uicontrol('parent',UIPH,'style','pushbutton','string','RESET','BackgroundColor',[.1,.7,.7], ...
-        'units','normalized','position',[.01 .01 .97 .3],'Fontsize',20,'CallBack',{@UserR});
+        'units','normalized','position',[.01 .01 .97 .3],'Fontsize',16,'CallBack',{@UserR});
     
     
     
     %Plot X/Y (parent is first uipanel)
-    SP1 = subplot(2,1,1,'parent',UIPH_Fig);
+    SP1 = subplot(3,1,1,'parent',UIPH_Fig);
     plot(xx(Ws(aa):We(aa)),'b','parent',SP1);
     title('X Trace');
-    ylabel('Arcmin'); xlabel('Frames');
+    ylabel('Arcmin'); %xlabel('Frames');
     xlim(SP1,[1 length(xx(Ws(aa):We(aa)))]);
     pos = get(gca, 'Position');%JGadd
     set(gca,'xgrid','on','XTick',[0:SPF:length(xx)],'XTickLabel', ...
-        0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.05 pos(2) 0.9 pos(4)]);
+        0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.02 pos(2) .96 pos(4)]);
     Yh1 = get(gca,'ylim');
     Ax1 = gca;
     
@@ -192,6 +199,7 @@ while aa < length(Ws)
             set(H, 'FaceAlpha', 0.1,'EdgeAlpha',0); hold on;
         end
     end
+    
     
     for bb = 1:length(Bstmp) %Blinks
         try
@@ -210,22 +218,20 @@ while aa < length(Ws)
     for bb = 1:length(ARstmp) %Previously Auto-rejected
         try
             H = fill([ARstmp(bb) ARetmp(bb) ARetmp(bb) ARstmp(bb)],[max(Yh1) max(Yh1) min(Yh1) min(Yh1)],'k');
-
-            set(H, 'FaceAlpha', 0.4,'EdgeAlpha',0); hold on;
-
+            set(H, 'FaceAlpha', 0.3,'EdgeAlpha',0); hold on;
         end
     end
     
     hold off
     
-    SP2 = subplot(2,1,2);
+    SP2 = subplot(3,1,2);
     plot(yy(Ws(aa):We(aa)),'r','parent',SP2);
     title('Y Trace');
-    ylabel('Arcmin'); xlabel('Frames');
+    ylabel('Arcmin'); %xlabel('Frames');
     xlim(SP2,[1 length(yy(Ws(aa):We(aa)))]);
     pos = get(gca, 'Position');%JGadd
     set(gca,'xgrid','on','XTick',[0:SPF:length(xx)],'XTickLabel', ...
-        0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.05 pos(2) 0.9 pos(4)]);
+        0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.02 pos(2) .96 pos(4)]);
     Yh2 = get(gca,'ylim');
     Ax2 = gca;
     
@@ -252,32 +258,122 @@ while aa < length(Ws)
         end
     end
     
-
-    for bb = 1:length(ARstmp) %Drifts
+    for bb = 1:length(ARstmp) %Auto-rejected
         try
             H = fill([ARstmp(bb) ARetmp(bb) ARetmp(bb) ARstmp(bb)],[max(Yh2) max(Yh2) min(Yh2) min(Yh2)],'k');
-            set(H, 'FaceAlpha', 0.4,'EdgeAlpha',0); hold on;
-
+            set(H, 'FaceAlpha', 0.3,'EdgeAlpha',0); hold on;
+        end
+    end
+    hold off
+    
+    SP3 = subplot(3,1,3);
+    plot(pythVel(Ws(aa):We(aa)),'Color',[0.6 0 0.6],'parent',SP3);
+    title('Pythagorian Velocity Trace');
+    ylabel('Velocity (Deg/sec)'); %xlabel('Frames');
+    xlim(SP3,[1 length(yy(Ws(aa):We(aa)))]);
+    pos = get(gca, 'Position');%JGadd
+    set(gca,'xgrid','on','XTick',[0:SPF:length(xx)],'XTickLabel', ...
+        0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.02 pos(2) .96 pos(4)]);
+    Yh3 = get(gca,'ylim');
+    Ax3 = gca;
+    
+    %Labels
+    hold on
+    for bb = 1:length(Sstmp) %Saccades
+        try
+            H = fill([Sstmp(bb) Setmp(bb) Setmp(bb) Sstmp(bb)],[max(Yh3) max(Yh3) min(Yh3) min(Yh3)],'m');
+            set(H, 'FaceAlpha', 0.1,'EdgeAlpha',0); hold on;
+        end
+    end
+    
+    for bb = 1:length(Bstmp) %Blinks
+        try
+            H = fill([Bstmp(bb) Betmp(bb) Betmp(bb) Bstmp(bb)],[max(Yh3) max(Yh3) min(Yh3) min(Yh3)],'k');
+            set(H, 'FaceAlpha', 0.1,'EdgeAlpha',0); hold on;
+        end
+    end
+    
+    for bb = 1:length(Dstmp) %Drifts
+        try
+            H = fill([Dstmp(bb) Detmp(bb) Detmp(bb) Dstmp(bb)],[max(Yh3) max(Yh3) min(Yh3) min(Yh3)],'c');
+            set(H, 'FaceAlpha', 0.1,'EdgeAlpha',0); hold on;
+        end
+    end
+    
+    for bb = 1:length(ARstmp) %Auto-rejected
+        try
+            H = fill([ARstmp(bb) ARetmp(bb) ARetmp(bb) ARstmp(bb)],[max(Yh3) max(Yh3) min(Yh3) min(Yh3)],'k');
+            set(H, 'FaceAlpha', 0.3,'EdgeAlpha',0); hold on;
         end
     end
     hold off
     
     
+    %JG add------ add the
+    %Plot X/Y (parent is first uipanel)
+    SP4 = axes(UIPH_2D);%SP1 = plot(3,1,1,'parent',UIPH_Fig);
+    plot(SP4,xx(Ws(aa):We(aa)),yy(Ws(aa):We(aa)),'Color',[0.6 0.6 0.6]);%SP1);
+    hold on
+    for bb = 1:length(Sstmp)
+        plot(SP4,xx(Ws(aa)-1+Sstmp(bb):Ws(aa)-1+Setmp(bb)),yy(Ws(aa)-1+Sstmp(bb):Ws(aa)-1+Setmp(bb)),'m')
+    end
+    for bb = 1:length(Bstmp)
+        plot(SP4,xx(Ws(aa)-1+Bstmp(bb):Ws(aa)-1+Betmp(bb)),yy(Ws(aa)-1+Bstmp(bb):Ws(aa)-1+Betmp(bb)),'k')
+    end
+    for bb = 1:length(Dstmp)
+        plot(SP4,xx(Ws(aa)-1+Dstmp(bb):Ws(aa)-1+Detmp(bb)),yy(Ws(aa)-1+Dstmp(bb):Ws(aa)-1+Detmp(bb)),'Color',[0.4 0.4 0.4])
+    end
+    for bb = 1:length(ARstmp)
+        plot(SP4,xx(Ws(aa)-1+ARstmp(bb):Ws(aa)-1+ARetmp(bb)),yy(Ws(aa)-1+ARstmp(bb):Ws(aa)-1+ARetmp(bb)),'k')
+    end
+    hold off
+    title('2D plan');
+    %ylabel('Arcmin'); %xlabel('Frames');
+    pos = get(gca, 'Position');%JGadd
+    set(gca,'xgrid','on','XColor',[0 0 1],'YColor',[1 0 0]);
+    %'XTick',,[0:SPF:length(xx)],'XTickLabel', ...
+     %   0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.02 pos(2) .96 pos(4)]);
+
+    
+    %Plot X/Y (parent is first uipanel)
+    SP6 = axes(UIPH_2Dspeed);%SP1 = subplot(3,1,1,'parent',UIPH_Fig);
+    plot(SP6,vel(Ws(aa):We(aa),1),vel(Ws(aa):We(aa),2),'Color',[0.6 0 0.6]);%SP1);
+    hold on
+    for bb = 1:length(Sstmp)
+        plot(SP6,vel(Ws(aa)-1+Sstmp(bb):Ws(aa)-1+Setmp(bb),1),vel(Ws(aa)-1+Sstmp(bb):Ws(aa)-1+Setmp(bb),2),'m')
+    end
+    for bb = 1:length(Bstmp)
+        plot(SP6,vel(Ws(aa)-1+Bstmp(bb):Ws(aa)-1+Betmp(bb),1),vel(Ws(aa)-1+Bstmp(bb):Ws(aa)-1+Betmp(bb),2),'k')
+    end
+    for bb = 1:length(Dstmp)
+        plot(SP6,vel(Ws(aa)-1+Dstmp(bb):Ws(aa)-1+Detmp(bb),1),vel(Ws(aa)-1+Dstmp(bb):Ws(aa)-1+Detmp(bb),2),'Color',[0.4 0.4 0.4])
+    end
+    for bb = 1:length(ARstmp)
+        plot(SP6,vel(Ws(aa)-1+ARstmp(bb):Ws(aa)-1+ARetmp(bb),1),vel(Ws(aa)-1+ARstmp(bb):Ws(aa)-1+ARetmp(bb),2),'k')
+    end
+    hold off
+    title('Velocity');
+    %ylabel('Vert. Speed (deg/s)'); %xlabel('Frames');
+    pos = get(gca, 'Position');%JGadd
+    axis([-2 2 -2 2]);
+    set(gca,'xgrid','on','XColor',[0 0 1],'YColor',[1 0 0]);%,'XTick',[0:SPF:length(xx)],'XTickLabel', ...
+    %    0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.02 pos(2) .96 pos(4)]);
+
     % Put variables needed for nested function in UI button handles
     while NextPlot == 0 && ResetCurr == 0  % Update until next plot/reset is called
         
         UIH_Select.UserData.Idx = RIdx;  UIH_Select.UserData.CurrIt = aa; %Select
-        UIH_Select.UserData.Ax1 = Ax1;   UIH_Select.UserData.Ax2 = Ax2;
+        UIH_Select.UserData.Ax1 = Ax1;   UIH_Select.UserData.Ax2 = Ax2; UIH_Select.UserData.Ax3 = Ax3;
         UIH_Select.UserData.Cnt = Cnt;
         
-        UIH_Sacc.UserData.Ax1 = Ax1;   UIH_Sacc.UserData.Ax2 = Ax2; %Saccade
+        UIH_Sacc.UserData.Ax1 = Ax1;   UIH_Sacc.UserData.Ax2 = Ax2; UIH_Sacc.UserData.Ax3 = Ax3;%Saccade
         UIH_Sacc.UserData.Idx = RIdx;  UIH_Sacc.UserData.CurrIt = aa;
         UIH_Sacc.UserData.NewSs = NewSs;  UIH_Sacc.UserData.NewSe = NewSe;
         UIH_Sacc.UserData.InputS = InputS;  UIH_Sacc.UserData.InputE = InputE;
         UIH_Sacc.UserData.Cnt = Cnt;
         
         UIH_Reject.UserData.Idx = RIdx;  UIH_Reject.UserData.CurrIt = aa; %Reject
-        UIH_Reject.UserData.Ax1 = Ax1;   UIH_Reject.UserData.Ax2 = Ax2;
+        UIH_Reject.UserData.Ax1 = Ax1;   UIH_Reject.UserData.Ax2 = Ax2; UIH_Reject.UserData.Ax3 = Ax3;
         UIH_Reject.UserData.Rs = Rs;   UIH_Reject.UserData.Re = Re;
         UIH_Reject.UserData.InputS = InputS;  UIH_Reject.UserData.InputE = InputE;
         UIH_Reject.UserData.Cnt = Cnt;
@@ -336,7 +432,7 @@ NewSe(find(NewSe == 0)) = NaN; NewSe = NewSe + AdjVals;
 Re(find(isnan(Re))) = []; NewSe(find(isnan(NewSe))) = [];
 
 AllDs = Ds(:); AllDe = De(:); AllSs = Ss(:); AllSe = Se(:);
-
+NewSse=[];%JGadd
 %Add new saccades and adjust drifts appropriately
 if ~isempty(NewSs)
     for ii = 1:length(NewSs)
@@ -348,6 +444,10 @@ if ~isempty(NewSs)
         %Adjust saccades for new saccade inclusion
         AllSs = unique(sort([AllSs ; NewSs(ii)]));
         AllSe = unique(sort([AllSe ; NewSe(ii)]));
+        
+        %JS EDITS: Get all the values withing these newly identified
+        %saccades
+        NewSse=[NewSse;AllSs(aa):AllSe(aa)];%JGadd
         
     end
     
@@ -382,7 +482,6 @@ for ii = 1:length(Rs)
     Re(ii) = FDem(NFE);
     
     RSamps = Rs(ii):Re(ii); %samples of rejected data
-    
     
     
     %Eliminate Saccades within rejected range
@@ -486,6 +585,7 @@ end
             [Xinput,YInput] = ginput(4);
             Ax1 = Source.UserData.Ax1;
             Ax2 = Source.UserData.Ax2;
+            Ax3 = Source.UserData.Ax3;
             Cnt = Source.UserData.Cnt +1;
             InputS(Cnt) = nanmean([Xinput(1),Xinput(3)]); %Marked Start
             InputE(Cnt) = nanmean([Xinput(2),Xinput(4)]); %Marked End
@@ -499,6 +599,11 @@ end
             axes(Ax2);
             hold on
             H = fill([InputS(Cnt) InputE(Cnt) InputE(Cnt) InputS(Cnt)],[max(Yh2) max(Yh2) min(Yh2) min(Yh2)],'k');
+            set(H, 'FaceAlpha', 0.2,'EdgeAlpha',0);
+            
+            axes(Ax3);
+            hold on
+            H = fill([InputS(Cnt) InputE(Cnt) InputE(Cnt) InputS(Cnt)],[max(Yh3) max(Yh3) min(Yh3) min(Yh3)],'k');
             set(H, 'FaceAlpha', 0.2,'EdgeAlpha',0);
             
             %Assign variables back into common workspace
@@ -531,6 +636,11 @@ end
             H = fill([InputStmp InputEtmp InputEtmp InputStmp],[max(Yh2) max(Yh2) min(Yh2) min(Yh2)],'r');
             set(H, 'FaceAlpha', 0.3,'EdgeAlpha',0);
             
+            axes(Ax3);
+            hold on
+            H = fill([InputStmp InputEtmp InputEtmp InputStmp],[max(Yh3) max(Yh3) min(Yh3) min(Yh3)],'r');
+            set(H, 'FaceAlpha', 0.3,'EdgeAlpha',0);
+            
             %Reassign to original workspace
             assignin('base','Rs',Rs);
             assignin('base','Re',Re);
@@ -558,6 +668,11 @@ end
             axes(Ax2);
             hold on
             H = fill([InputStmp InputEtmp InputEtmp InputStmp],[max(Yh2) max(Yh2) min(Yh2) min(Yh2)],'m');
+            set(H, 'FaceAlpha', 0.3,'EdgeAlpha',0);
+            
+            axes(Ax3);
+            hold on
+            H = fill([InputStmp InputEtmp InputEtmp InputStmp],[max(Yh3) max(Yh3) min(Yh3) min(Yh3)],'m');
             set(H, 'FaceAlpha', 0.3,'EdgeAlpha',0);
             
             %Reassign to original workspace

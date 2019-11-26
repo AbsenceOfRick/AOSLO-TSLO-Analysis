@@ -38,41 +38,46 @@ for aa = 1:length(SaccS)
     
     if ~isempty(find( (SaccE(aa) + 1) == DropS )) && ...
             ~isempty(find( (SaccS(aa) - 2) == DropE ))  %Seperate saccade fully encapsulated by blink
-    ToDropS(aa) = 1; %Delete Marker
+        ToDropS(aa) = 1; %Delete Marker
     end
 
+    
+
 end
+
 
 %Reindex rejected values
 for aa = 1:length(ToDropS)
-
-if ToDropS(aa) == 1 %B in S or S in B, simply mark as deleted
-
-NewRs = [NewRs;SaccS(aa)]; NewRe = [NewRe;SaccE(aa)];
-
-end
-
-if ToDropS(aa) == 2 %Saccade ending on a blink but not starting
-   
- i = find((SaccE(aa) + 1) == DropS);
- DropS(i) = SaccS(aa);
- 
-end
-
-if ToDropS(aa) == 3 %Saccade immediately coming out of a blink
-
-    i = find((SaccS(aa) - 2) == DropE);
-    DropE(i) = SaccE(aa);
     
+    if ToDropS(aa) == 1 %B in S or S in B, simply mark as deleted
+        NewRs = [NewRs;SaccS(aa)]; 
+        NewRe = [NewRe;SaccE(aa)];
+    end
+    
+    if ToDropS(aa) == 2 %Saccade ending on a blink but not starting
+        
+        i = find((SaccE(aa) + 1) == DropS);
+        DropS(i) = SaccS(aa);
+        
+    end
+    
+    if ToDropS(aa) == 3 %Saccade immediately coming out of a blink
+        
+        i = find((SaccS(aa) - 2) == DropE);
+        DropE(i) = SaccE(aa);
+        
+    end
 end
-end
+
 
 SaccS(find(ToDropS~=0)) = [];
 SaccE(find(ToDropS~=0)) = [];
-DropS(find(ToDropB~=0)) = [];
-DropE(find(ToDropB~=0)) = [];
+
+DropS(find(ToDropB~=0))=[];
+DropE(find(ToDropB~=0))=[];
 
 
+ for aa = 1:length(DropRejS)
 
 DropRejS = intersect(DropS-1,NewRe);
 DropRejE = intersect(DropE+2,NewRs);
@@ -80,19 +85,23 @@ ToDropBs = zeros(1,length(DropS));
 ToDropBe = zeros(1,length(DropE));
 ToDropRej = [];
 
-for aa = 1:length(DropRejS)
 
-ToDropRej(aa) = find(NewRe == DropRejS(aa));
+ ToDropRej(aa) = find(NewRe == DropRejS(aa));
 
-ToDropBs(find(DropRejS(aa) == DropS-1)) = 1;
-ToDropBe(find(DropRejE(aa) == DropE+2)) = 1;
+ ToDropBs(find(DropRejS(aa) == DropS-1)) = 1;
+ ToDropBe(find(DropRejE(aa) == DropE+2)) = 1;
 
-end
+ end
 
-NewRs(ToDropRej) = [];
-NewRe(ToDropRej) = [];
+ if ~isempty(ToDropRej)
+    NewRs(ToDropRej) = [];
+    NewRe(ToDropRej) = [];
+ end
+
 DropS(find(ToDropBs)) = [];
 DropE(find(ToDropBe)) = [];
+
+
 
 
 

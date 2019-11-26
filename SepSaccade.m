@@ -31,14 +31,14 @@ function [Sstart,Send,XFilt,YFilt,xx,yy] = SepSaccades(xx,yy,SampRate,FiltWindow
 %% Initialize
 
 % Initial Variables
-SpdThresh = 90; %speed threshold for saccades (arcmin/sec, default 90)
+SpdThresh = 65;%65;%70;%JG 90; %speed threshold for saccades (arcmin/sec, default 90) 90<=>1.5
 MinDur = 5; %Minimum duration of saccade (in ms, default 5)
-MaxDur = 150; %Maximum duration of saccade (in ms, default 100)
+MaxDur = 150;%JG150; %Maximum duration of saccade (in ms, default 100)
 MinGap = 50; %Minimum gap between saccades (in ms, default 50)
-MinAmp = 3; %Minimum amplitude of saccade (in arcmin, default 3)
+MinAmp = 1.5;%1.2;%1%1.8;%JG 3; %Minimum amplitude of saccade (in arcmin, default 3)
 
 %Adjust Filter Window to sampling rate (51 worked at 32SPF, adjust accordingly)
-FiltWindow = 51;
+FiltWindow = 51;%51;
 %% Low-pass filtered x position (for speed analysis only)
 Xtmp = xx;
 Ytmp = yy;
