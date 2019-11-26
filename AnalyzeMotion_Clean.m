@@ -2,13 +2,13 @@ clc; clear all; close all;
 %% Initialize
 
 %Adjust parameters below by hand as desired before running
-
-%Directory = '/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57'; %Directory of .mat file(s)
-%Curr_File = '20196L_001_nostim_meanrem_960_hz_1029';
-
-[Curr_File Directory] = uigetfile('/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57/*.mat',...
-    'select eye trace as mat file');
-
+if ispc
+    [Curr_File Directory] = uigetfile('D:\*.mat',...
+    'select eye trace as MAT file');    
+else
+    [Curr_File Directory] = uigetfile('/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57/*.mat',...
+    'select eye trace as MAT file');
+end
 
 %Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). sa FieldSize(Arc)/512 = PxArcmin.
 PPD = 569;%570; % Pixels per degree
