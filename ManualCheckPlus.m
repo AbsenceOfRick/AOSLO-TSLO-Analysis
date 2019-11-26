@@ -433,7 +433,7 @@ NewSe(find(NewSe == 0)) = NaN; NewSe = NewSe + AdjVals;
 Re(find(isnan(Re))) = []; NewSe(find(isnan(NewSe))) = [];
 
 AllDs = Ds(:); AllDe = De(:); AllSs = Ss(:); AllSe = Se(:);
-NewSse=[];%JGadd
+%NewSse=[];%JGadd TO DO 
 %Add new saccades and adjust drifts appropriately
 if ~isempty(NewSs)
     for ii = 1:length(NewSs)
@@ -448,7 +448,7 @@ if ~isempty(NewSs)
         
         %JS EDITS: Get all the values withing these newly identified
         %saccades
-        NewSse=[NewSse;AllSs(aa):AllSe(aa)];%JGadd
+        %NewSse=[NewSse;AllSs(aa):AllSe(aa)];%JGadd TO DO
         
     end
     
