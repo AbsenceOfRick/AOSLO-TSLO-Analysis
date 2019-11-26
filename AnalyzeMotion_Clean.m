@@ -106,18 +106,18 @@ if ~Load_Demarcation
         RejectedS = []; 
         RejectedE = [];
     end
-    if ~iscolumn(RejectedS) %JG ---------to commmit
+    if ~iscolumn(RejectedS)%if line vector instead of column vector % -------------------------------------JG to commit
         RejectedS=RejectedS';
         RejectedE=RejectedE';
     end
     RejectedS = sort([RejectedS;autoRejS]);
     RejectedE = sort([RejectedE;autoRejE]);
-
 %drop negative values and NaN values (some sort of bug?).
 
 Dstmp = DriftS; Detmp = DriftE;
-if length(DriftE)~=length(DriftS)
-    fprintf('Problem: not same length\n');
+if length(DriftS)~=length(DriftE)% -----------JG to commit
+   fprintf('error, different sizes of vector\n'); 
+    
 end
 Dstmp(find((DriftE-DriftS)<=1)) = [];
 Detmp(find((DriftE-DriftS)<=1)) = [];
