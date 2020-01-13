@@ -93,17 +93,19 @@ while aa < length(Ws)
     
    %% JG add
     if length(Dstmp)~=length(Detmp)
-        fprintf([ num2str(aa) '/' num2str(length(Ws)) ': Number of Drift starts and endings different BEFORE processing of first and last elements\n']);
+        fprintf([ num2str(aa) '/' num2str(length(Ws)) ': # Drift starts and endings different BEFORE processing of first and last elements\n']);
     end
     
-    if  Sstmp(1)>Setmp(1) %Saccades
-        Sstmp = [1;Sstmp];
-    end
-    if Setmp(end)<Sstmp(end)
-        Setmp(end+1) = length(xx(Ws(aa):We(aa)));
+    if ~isempty(Sstmp) && ~isempty(Setmp)%JG bug #6
+        if  Sstmp(1)>Setmp(1) %Saccades
+            Sstmp = [1;Sstmp];
+        end
+        if Setmp(end)<Sstmp(end)
+            Setmp(end+1) = length(xx(Ws(aa):We(aa)));
+        end
     end
     
-    if  Dstmp(1)>Detmp(1) %Drifts
+    if  Dstmp(1)>Detmp(1) %| (Dstmp(1)~=1 & Dstmp(1)>Detmp(1))%JG mod %Drifts
         Dstmp = [1;Dstmp];
     end
     if Detmp(end)<Dstmp(end)
@@ -119,6 +121,11 @@ while aa < length(Ws)
         end
     end
     
+    %%{
+    if ~isempty(ARstmp) && isempty(ARetmp)%JG bug#3
+       ARetmp= length(xx(Ws(aa):We(aa)));
+    end
+    %}
     if ~isempty(ARstmp)
         if  ARstmp(1)>ARetmp(1) %Previously auto-rejected
             ARstmp = [1;ARstmp];
@@ -128,11 +135,34 @@ while aa < length(Ws)
         end
     end
     
+    %%{
+    if length(Dstmp)~=length(Detmp)%JG bug#4
+        fprintf([ num2str(aa) '/' num2str(length(Ws)) ': # Drift starts and endings different AFTER processing of first and last elements\n']);
+        
+        if length(Dstmp)<length(Detmp)
+            % we might have an extra event at the end
+            if Detmp(end-1)>Dstmp(end)
+                Detmp=Detmp(1:end-1);
+            end
+        else %length(Dstmp)>length(Detmp), then trim the first elements 
+            if Dstmp(2)<Detmp(1)
+                Dstmp=Dstmp(2:end);
+            end
+            if Dstmp(3)<Detmp(2)
+                Dstmp(3)=[];
+            end
+        end
+    end
+    %}
     if length(Dstmp)~=length(Detmp)
-        fprintf([ num2str(aa) '/' num2str(length(Ws)) ': Number of Drift starts and endings different AFTER processing of first and last elements\n']);
+        fprintf([ num2str(aa) '/' num2str(length(Ws)) ': # Drift starts and endings different still AFTER processing \nof first and last elements\n']);
         beep;
     end
     
+    %if any( (Detmp-Dstmp)==length(xx(Ws(aa):We(aa))) )% if %JG bug#5
+    %    fprintf('\ Error: one drift segment the size of the full window\n');
+    %end
+        
     %     %Event starting in one window and ending in another
     %     if length(Bstmp) ~= length(Betmp) && Bstmp(end)>Betmp(end) %Blinks
     %         Betmp(end+1) = length(xx(Ws(aa):We(aa)));
@@ -441,6 +471,11 @@ if ~isempty(NewSs)
         %Adjust drifts for new saccade inclusion
         AllDs = unique(sort([AllDs ; NewSe(ii)+1]));
         AllDe = unique(sort([AllDe ; NewSs(ii)-1]));
+        
+        %JG bug#2 different sizes for Ds and De
+        if length(AllDs)~=length(AllDe)
+            fprintf('ManualCheckPlus(): different length of Drifts starts and ends\n');
+        end
         
         %Adjust saccades for new saccade inclusion
         AllSs = unique(sort([AllSs ; NewSs(ii)]));
