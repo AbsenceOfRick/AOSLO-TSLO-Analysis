@@ -1,4 +1,4 @@
-clc; clear all; close all;
+clc; clear; close all;
 %% Initialize
 
 %Adjust parameters below by hand as desired before running
@@ -11,8 +11,11 @@ else
 end
 
 %Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). sa FieldSize(Arc)/512 = PxArcmin.
-PPD = 569;%570; % Pixels per degree
-PxArcmin = ( (512/PPD) * 60 ) / 512; %Pixel to Arcmin Conversion (arcmin in 1 pixel)
+%PPD = 569;%570; % Pixels per degree
+PPD_H= 566;%559
+PPD_V= 564;%557
+PxArcminH = ( (512/PPD_H) * 60 ) / 512; %Pixel to Arcmin Conversion (arcmin in 1 pixel)
+PxArcminV = ( (512/PPD_V) * 60 ) / 512;
 ManualWin = 0.25; %Window for manual checking function (as a percentage of the total trace)
 FiltWindow = 51; %Window for loess filter (Lower value = less smoothing/more false positives for saccades)
 
@@ -36,7 +39,7 @@ end
 
 %Initialize variables
 ChooseSamp = 1:length(frameshifts_strips_spline);  %Which samples to choose (must be from beginning, default to all)
-FrameHeight = round(framewidth * PxArcmin);
+%FrameHeight = round(framewidth * PxArcmin);JGc unused
 FrameRate = videoframerate; %Framerate
 SampRate = samplerate;  %Samplerate (Equal to FrameRate * SPF)
 SPF = SampRate/FrameRate; %Samples per frame
@@ -64,8 +67,8 @@ xx = xx(ChooseSamp);
 yy = yy(ChooseSamp);
 
 %Convert to arcmin
-xx = xx.*PxArcmin;
-yy = yy.*PxArcmin;
+xx = xx.*PxArcminH;
+yy = yy.*PxArcminV;
 end
 
 %Rebuild and obtain start/end of dropped frames
@@ -123,9 +126,9 @@ if ~Load_Demarcation
 
 Dstmp = DriftS; Detmp = DriftE;
 if length(DriftS)~=length(DriftE)% -----------JG to commit
-   fprintf('error, different sizes of vector\n'); 
-    
+   fprintf('\nError after ManualCheckPlus, different sizes of vector\n'); 
 end
+
 Dstmp(find((DriftE-DriftS)<=1)) = [];
 Detmp(find((DriftE-DriftS)<=1)) = [];
 tmp = find(isnan(Dstmp) | isnan(Detmp) );
