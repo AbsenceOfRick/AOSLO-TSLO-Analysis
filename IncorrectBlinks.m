@@ -78,19 +78,15 @@ SaccE(find(ToDropS~=0)) = [];
 DropS(find(ToDropB~=0))=[];
 DropE(find(ToDropB~=0))=[];
 
- for aa = 1:length(DropRejS)
+DropRejS = intersect(DropS-1,NewRe);
+DropRejE = intersect(DropE+2,NewRs);
+ToDropBs = zeros(1,length(DropS));
+ToDropBe = zeros(1,length(DropE));
+ToDropRej = zeros(1,length(DropRejS));
 
 
-
-    DropRejS = intersect(DropS-1,NewRe);
-    DropRejE = intersect(DropE+2,NewRs);
-    ToDropBs = zeros(1,length(DropS));
-    ToDropBe = zeros(1,length(DropE));
-    ToDropRej = zeros(1,length(DropRejS));
-
-
- for aa = 1:length(DropRejS)
-     ToDropRej(aa) = find(NewRe == DropRejS(aa));
+for aa = 1:length(DropRejS)
+    ToDropRej(aa) = find(NewRe == DropRejS(aa));
 
      ToDropBs(find(DropRejS(aa) == DropS-1)) = 1;
      ToDropBe(find(DropRejE(aa) == DropE+2)) = 1;

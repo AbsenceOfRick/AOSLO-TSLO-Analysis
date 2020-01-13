@@ -31,7 +31,7 @@ function [Sstart,Send,XFilt,YFilt,xx,yy] = SepSaccades(xx,yy,SampRate,FiltWindow
 %% Initialize
 
 % Initial Variables
-SpdThresh = 65;%65;%70;%JG 90; %speed threshold for saccades (arcmin/sec, default 90) 90<=>1.5
+SpdThresh = 90;%65;%70;%JG 90; %speed threshold for saccades (arcmin/sec, default 90) 90<=>1.5
 MinDur = 5; %Minimum duration of saccade (in ms, default 5)
 MaxDur = 150;%JG150; %Maximum duration of saccade (in ms, default 100)
 MinGap = 50; %Minimum gap between saccades (in ms, default 50)

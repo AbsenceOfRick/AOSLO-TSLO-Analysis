@@ -123,7 +123,7 @@ while aa < length(Ws)
         end
     end
     
-    if ~isempty(ARstmp)
+    if ~isempty(ARstmp) && ~isempty(ARetmp)
         if  ARstmp(1)>ARetmp(1) %Previously auto-rejected
             ARstmp = [1;ARstmp];
         end
