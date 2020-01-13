@@ -1,22 +1,24 @@
-clc; clear; close all;
+clc; clear all; close all;
 %% Initialize
 
 %Adjust parameters below by hand as desired before running
+
 if ispc
-    [Curr_File Directory] = uigetfile('D:\*.mat',...
+    [Curr_File Directory] = uigetfile('G:\My Drive\PRL_project\aoslo_data\20109R\*.mat',...
+
     'select eye trace as MAT file');    
 else
     [Curr_File Directory] = uigetfile('/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57/*.mat',...
     'select eye trace as MAT file');
 end
 
-%Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). sa FieldSize(Arc)/512 = PxArcmin.
-%PPD = 569;%570; % Pixels per degree
-PPD_H= 566;%559
-PPD_V= 564;%557
+%Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). FieldSize(Arc)/512 = PxArcmin.
+PPD_H = 559; %556 % Pixels per degree X
+PPD_V = 557; %564; %Pixels per degree Y
 PxArcminH = ( (512/PPD_H) * 60 ) / 512; %Pixel to Arcmin Conversion (arcmin in 1 pixel)
 PxArcminV = ( (512/PPD_V) * 60 ) / 512;
-ManualWin = 0.25; %Window for manual checking function (as a percentage of the total trace)
+ManualWin = 0.333333333333333; %Window for manual checking function (as a percentage of the total trace)
+
 FiltWindow = 51; %Window for loess filter (Lower value = less smoothing/more false positives for saccades)
 
 ShowSep = 1; %Plot Saccade,Drift,Blink seperation
@@ -39,7 +41,8 @@ end
 
 %Initialize variables
 ChooseSamp = 1:length(frameshifts_strips_spline);  %Which samples to choose (must be from beginning, default to all)
-%FrameHeight = round(framewidth * PxArcmin);JGc unused
+
+FrameHeight = round(framewidth * PxArcminH);
 FrameRate = videoframerate; %Framerate
 SampRate = samplerate;  %Samplerate (Equal to FrameRate * SPF)
 SPF = SampRate/FrameRate; %Samples per frame
@@ -128,6 +131,7 @@ Dstmp = DriftS; Detmp = DriftE;
 if length(DriftS)~=length(DriftE)% -----------JG to commit
    fprintf('\nError after ManualCheckPlus, different sizes of vector\n'); 
 end
+
 
 Dstmp(find((DriftE-DriftS)<=1)) = [];
 Detmp(find((DriftE-DriftS)<=1)) = [];

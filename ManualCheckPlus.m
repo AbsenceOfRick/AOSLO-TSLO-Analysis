@@ -69,8 +69,10 @@ We = [We length(xx)];
 SampRate=960;
 vel=[diff(XFilt).*SampRate./60, diff(YFilt).*SampRate./60];% for deg/s speed
 pythVel=abs(diff(sqrt(XFilt.^ 2 + YFilt.^ 2) .* SampRate))/60;
+
 vel=[vel(1,:);vel];
 pythVel=[pythVel(1); pythVel];
+
 %% Display GUI for Windows over entire trace
 aa=0; RIdx = []; Cnt = 0; MarkEnd = 1;
 while aa < length(Ws)
@@ -105,7 +107,7 @@ while aa < length(Ws)
         end
     end
     
-    if  Dstmp(1)>Detmp(1) %| (Dstmp(1)~=1 & Dstmp(1)>Detmp(1))%JG mod %Drifts
+    if  Dstmp(1)>Detmp(1) %| (Dstmp(1)~=1 & Dstmp(1)>Detmp(1))%JG mod %Drift
         Dstmp = [1;Dstmp];
     end
     if Detmp(end)<Dstmp(end)
@@ -121,21 +123,22 @@ while aa < length(Ws)
         end
     end
     
-    %%{
     if ~isempty(ARstmp) && isempty(ARetmp)%JG bug#3
        ARetmp= length(xx(Ws(aa):We(aa)));
     end
-    %}
+    
     if ~isempty(ARstmp)
+
         if  ARstmp(1)>ARetmp(1) %Previously auto-rejected
             ARstmp = [1;ARstmp];
         end
         if ARetmp(end)<ARstmp(end)
             ARetmp(end+1) = length(xx(Ws(aa):We(aa)));
         end
+        
     end
     
-    %%{
+
     if length(Dstmp)~=length(Detmp)%JG bug#4
         fprintf([ num2str(aa) '/' num2str(length(Ws)) ': # Drift starts and endings different AFTER processing of first and last elements\n']);
         
@@ -153,7 +156,7 @@ while aa < length(Ws)
             end
         end
     end
-    %}
+   
     if length(Dstmp)~=length(Detmp)
         fprintf([ num2str(aa) '/' num2str(length(Ws)) ': # Drift starts and endings different still AFTER processing \nof first and last elements\n']);
         beep;
@@ -163,6 +166,7 @@ while aa < length(Ws)
     %    fprintf('\ Error: one drift segment the size of the full window\n');
     %end
         
+
     %     %Event starting in one window and ending in another
     %     if length(Bstmp) ~= length(Betmp) && Bstmp(end)>Betmp(end) %Blinks
     %         Betmp(end+1) = length(xx(Ws(aa):We(aa)));
@@ -464,6 +468,7 @@ Re(find(isnan(Re))) = []; NewSe(find(isnan(NewSe))) = [];
 
 AllDs = Ds(:); AllDe = De(:); AllSs = Ss(:); AllSe = Se(:);
 %NewSse=[];%JGadd TO DO 
+
 %Add new saccades and adjust drifts appropriately
 if ~isempty(NewSs)
     for ii = 1:length(NewSs)
@@ -476,7 +481,7 @@ if ~isempty(NewSs)
         if length(AllDs)~=length(AllDe)
             fprintf('ManualCheckPlus(): different length of Drifts starts and ends\n');
         end
-        
+
         %Adjust saccades for new saccade inclusion
         AllSs = unique(sort([AllSs ; NewSs(ii)]));
         AllSe = unique(sort([AllSe ; NewSe(ii)]));

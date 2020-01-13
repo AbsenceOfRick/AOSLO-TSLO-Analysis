@@ -70,12 +70,12 @@ for aa = 1:length(ToDropS)
 end
 
 
+
 SaccS(find(ToDropS~=0)) = [];
 SaccE(find(ToDropS~=0)) = [];
 
 DropS(find(ToDropB~=0))=[];
 DropE(find(ToDropB~=0))=[];
-
 
 
     DropRejS = intersect(DropS-1,NewRe);
@@ -90,6 +90,7 @@ DropE(find(ToDropB~=0))=[];
 
      ToDropBs(find(DropRejS(aa) == DropS-1)) = 1;
      ToDropBe(find(DropRejE(aa) == DropE+2)) = 1;
+
 
  end
 
