@@ -93,7 +93,7 @@ while aa < length(Ws)
     Detmp = Detmp(:)-WinAdj; Bstmp = Bstmp(:)-WinAdj; Betmp = Betmp(:)-WinAdj;
     ARstmp= ARstmp(:)-WinAdj;ARetmp= ARetmp(:)-WinAdj;
     
-    %% JG add
+   %% JG add
     if length(Dstmp)~=length(Detmp)
         fprintf([ num2str(aa) '/' num2str(length(Ws)) ': # Drift starts and endings different BEFORE processing of first and last elements\n']);
     end
@@ -124,11 +124,11 @@ while aa < length(Ws)
     end
     
     if ~isempty(ARstmp) && isempty(ARetmp)%JG bug#3
-        ARetmp= length(xx(Ws(aa):We(aa)));
+       ARetmp= length(xx(Ws(aa):We(aa)));
     end
     
     if ~isempty(ARstmp)
-        
+
         if  ARstmp(1)>ARetmp(1) %Previously auto-rejected
             ARstmp = [1;ARstmp];
         end
@@ -138,7 +138,7 @@ while aa < length(Ws)
         
     end
     
-    
+
     if length(Dstmp)~=length(Detmp)%JG bug#4
         fprintf([ num2str(aa) '/' num2str(length(Ws)) ': # Drift starts and endings different AFTER processing of first and last elements\n']);
         
@@ -147,7 +147,7 @@ while aa < length(Ws)
             if Detmp(end-1)>Dstmp(end)
                 Detmp=Detmp(1:end-1);
             end
-        else %length(Dstmp)>length(Detmp), then trim the first elements
+        else %length(Dstmp)>length(Detmp), then trim the first elements 
             if Dstmp(2)<Detmp(1)
                 Dstmp=Dstmp(2:end);
             end
@@ -156,7 +156,7 @@ while aa < length(Ws)
             end
         end
     end
-    
+   
     if length(Dstmp)~=length(Detmp)
         fprintf([ num2str(aa) '/' num2str(length(Ws)) ': # Drift starts and endings different still AFTER processing \nof first and last elements\n']);
         beep;
@@ -165,8 +165,8 @@ while aa < length(Ws)
     %if any( (Detmp-Dstmp)==length(xx(Ws(aa):We(aa))) )% if %JG bug#5
     %    fprintf('\ Error: one drift segment the size of the full window\n');
     %end
-    
-    
+        
+
     %     %Event starting in one window and ending in another
     %     if length(Bstmp) ~= length(Betmp) && Bstmp(end)>Betmp(end) %Blinks
     %         Betmp(end+1) = length(xx(Ws(aa):We(aa)));
@@ -367,8 +367,8 @@ while aa < length(Ws)
     pos = get(gca, 'Position');%JGadd
     set(gca,'xgrid','on','XColor',[0 0 1],'YColor',[1 0 0]);
     %'XTick',,[0:SPF:length(xx)],'XTickLabel', ...
-    %   0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.02 pos(2) .96 pos(4)]);
-    
+     %   0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.02 pos(2) .96 pos(4)]);
+
     
     %Plot X/Y (parent is first uipanel)
     SP6 = axes(UIPH_2Dspeed);%SP1 = subplot(3,1,1,'parent',UIPH_Fig);
@@ -393,7 +393,7 @@ while aa < length(Ws)
     axis([-2 2 -2 2]);
     set(gca,'xgrid','on','XColor',[0 0 1],'YColor',[1 0 0]);%,'XTick',[0:SPF:length(xx)],'XTickLabel', ...
     %    0:max([0:SPF:length(xx)]),'FontSize',10,'Position',[0.02 pos(2) .96 pos(4)]);
-    
+
     % Put variables needed for nested function in UI button handles
     while NextPlot == 0 && ResetCurr == 0  % Update until next plot/reset is called
         
@@ -494,13 +494,13 @@ if ~isempty(NewSs)
             DIdxe = find(AllSs(Nearest)-1 == AllDe); %Nearest drift end
             
             if ~isempty(DIdxs) && ~isempty(DIdxe)
-                AllDs(DIdxs) = NewSe(ii)+1;
-                AllDe(DIdxe) = NewSs(ii)-1;
-                
-                %Fix Saccade
-                AllSs(Nearest) = NewSs(ii);
-                AllSe(Nearest) = NewSe(ii);
-                
+            AllDs(DIdxs) = NewSe(ii)+1;
+            AllDe(DIdxe) = NewSs(ii)-1;
+            
+            %Fix Saccade
+            AllSs(Nearest) = NewSs(ii);
+            AllSe(Nearest) = NewSe(ii);
+            
             else %Saccade improperly place (on blink, two saccades, etc)
                 NewSs(ii) = [];
                 NewSe(ii) = [];
@@ -516,29 +516,31 @@ end
 for ii = 1:length(NewSs)
     
     %Adjust drifts for new saccade inclusion
-    AllDs = unique(sort([AllDs ; NewSe(ii)+1]));
-    AllDe = unique(sort([AllDe ; NewSs(ii)-1]));
-    
-    %JG bug#2 different sizes for Ds and De
-    if length(AllDs)~=length(AllDe)
-        fprintf('ManualCheckPlus(): different length of Drifts starts and ends\n');
+        AllDs = unique(sort([AllDs ; NewSe(ii)+1]));
+        AllDe = unique(sort([AllDe ; NewSs(ii)-1]));
+        
+        %JG bug#2 different sizes for Ds and De
+        if length(AllDs)~=length(AllDe)
+            fprintf('ManualCheckPlus(): different length of Drifts starts and ends\n');
+        end
+        
+        %Adjust saccades for new saccade inclusion
+        AllSs = unique(sort([AllSs ; NewSs(ii)]));
+        AllSe = unique(sort([AllSe ; NewSe(ii)]));
+        
+        %JS EDITS: Get all the values withing these newly identified
+        %saccades
+        %NewSse=[NewSse;AllSs(aa):AllSe(aa)];%JGadd TO DO
+        
     end
     
-    %Adjust saccades for new saccade inclusion
-    AllSs = unique(sort([AllSs ; NewSs(ii)]));
-    AllSe = unique(sort([AllSe ; NewSe(ii)]));
+    %     AddedD = find(AllDs==NewSe+1);
+    %     AddedS = find(AllSs==NewSs);
     
-    %JS EDITS: Get all the values withing these newly identified
-    %saccades
-    %NewSse=[NewSse;AllSs(aa):AllSe(aa)];%JGadd TO DO
+    %     AddedD = [];
+    %     AddedS = [];
     
-end
 
-%     AddedD = find(AllDs==NewSe+1);
-%     AddedS = find(AllSs==NewSs);
-
-%     AddedD = [];
-%     AddedS = [];
 
 
 

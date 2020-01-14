@@ -11,13 +11,13 @@ else
     'select eye trace as MAT file');
 end
 
-
 %Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). FieldSize(Arc)/512 = PxArcmin.
 PPD_H = 559; %556 % Pixels per degree X
 PPD_V = 557; %564; %Pixels per degree Y
 PxArcminH = ( (512/PPD_H) * 60 ) / 512; %Pixel to Arcmin Conversion (arcmin in 1 pixel)
 PxArcminV = ( (512/PPD_V) * 60 ) / 512;
 ManualWin = 0.333333333333333; %Window for manual checking function (as a percentage of the total trace)
+
 FiltWindow = 51; %Window for loess filter (Lower value = less smoothing/more false positives for saccades)
 
 ShowSep = 1; %Plot Saccade,Drift,Blink seperation
@@ -40,6 +40,7 @@ end
 
 %Initialize variables
 ChooseSamp = 1:length(frameshifts_strips_spline);  %Which samples to choose (must be from beginning, default to all)
+
 FrameHeight = round(framewidth * PxArcminH);
 FrameRate = videoframerate; %Framerate
 SampRate = samplerate;  %Samplerate (Equal to FrameRate * SPF)
@@ -127,9 +128,10 @@ if ~Load_Demarcation
 
 Dstmp = DriftS; Detmp = DriftE;
 if length(DriftS)~=length(DriftE)% -----------JG to commit
-   fprintf('error, different sizes of vector\n'); 
-    
+   fprintf('\nError after ManualCheckPlus, different sizes of vector\n'); 
 end
+
+
 Dstmp(find((DriftE-DriftS)<=1)) = [];
 Detmp(find((DriftE-DriftS)<=1)) = [];
 tmp = find(isnan(Dstmp) | isnan(Detmp) );
