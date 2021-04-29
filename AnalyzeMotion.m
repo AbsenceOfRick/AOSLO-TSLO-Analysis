@@ -1,32 +1,30 @@
+% Software by Norick Bowers and Josselin Gautier
+% School of Optometry, UC Berkeley, California, USA
+
 clc; clear all; close all;
 %% Initialize
+PPD_H = 560;
+PPD_V = 560;
 
-%Adjust parameters below by hand as desired before running
-
-if ispc
-    [Curr_File Directory] = uigetfile('G:\My Drive\PRL_project\aoslo_data\20109R\*.mat',...
-    'select eye trace as MAT file');    
-else
-    [Curr_File Directory] = uigetfile('/Volumes/GoogleDrive/Mon Drive/PRL_project/aoslo_data/20196L/10_4_2019_18_28_57/*.mat',...
-    'select eye trace as MAT file');
-end
-
-%Px Arcmin Calculation:  512/PPD = FieldSize(Deg).  FieldSize(Deg)*60 = FieldSize(Arc). FieldSize(Arc)/512 = PxArcmin.
-PPD_H = 559; %556 % Pixels per degree X
-PPD_V = 557; %564; %Pixels per degree Y
-PxArcminH = ( (512/PPD_H) * 60 ) / 512; %Pixel to Arcmin Conversion (arcmin in 1 pixel)
-PxArcminV = ( (512/PPD_V) * 60 ) / 512;
-ManualWin = 0.333333333333333; %Window for manual checking function (as a percentage of the total trace)
-
+ManualWin = 0.25; %Window for manual checking function (as a percentage of the total trace)
 FiltWindow = 51; %Window for loess filter (Lower value = less smoothing/more false positives for saccades)
 
+%Turn on/off to enable/disable certain functions
 ShowSep = 1; %Plot Saccade,Drift,Blink seperation
 Manual_Check = 1; %Manually check abnormal drift traces
+AnalyzeMetrics = 1; %Analyze metrics of eye motion and generate plots
 CorrectTorsion = 0; %Correct torsion
-Analyze_Fourier = 0; %Analyze spectral properties of drifts (Unavailable, need to update to pmtm method from Welsch)
-AnalyzeMetrics = 0; %Analyze metrics of eye motion and generate plots
+Analyze_Fourier = 0; %Analyze spectral properties of drifts
 Save_On = 0; %Save workspace in directory
 Load_Demarcation = 0; %Load eye trace demarcation from processed file
+
+if ispc
+    [Curr_File Directory] = uigetfile('./',...
+        'select eye trace as MAT file');
+else
+    [Curr_File Directory] = uigetfile('./',...
+        'select eye trace as MAT file');
+end
 
 %load(sprintf('%s/%s.mat',Directory,Curr_File)); %Load
 load(sprintf('%s%s',Directory,Curr_File));
@@ -39,8 +37,9 @@ end
 
 
 %Initialize variables
+PxArcminH = ( (512/PPD_H) * 60 ) / 512; %Pixel to Arcmin Conversion (arcmin in 1 pixel)
+PxArcminV = ( (512/PPD_V) * 60 ) / 512;
 ChooseSamp = 1:length(frameshifts_strips_spline);  %Which samples to choose (must be from beginning, default to all)
-
 FrameHeight = round(framewidth * PxArcminH);
 FrameRate = videoframerate; %Framerate
 SampRate = samplerate;  %Samplerate (Equal to FrameRate * SPF)
@@ -52,30 +51,30 @@ SampFrame = 1:SPF:length(ChooseSamp) ; %Starts of each frame
 UsedFrame = floor(ChooseSamp(SampFrame)/SPF); %Which frames of the video are in samples chosen
 BlinkFrames = blinkframes(find(blinkframes>min(min(UsedFrame)) & blinkframes<max(max(UsedFrame)))); %Get dropped frames
 Samp_per_Sec = min(min(diff(timeaxis_secs))); %Time seperation between samples (sec)
-% DropE = []; DropS = []; SaccS = 1; SaccE = [];
+DropE = []; DropS = []; SaccS = 1; SaccE = [];
 
 
 %% Arrange
 
 %X and Y positions of entire movie
 if ~Load_Demarcation
-xx = frameshifts_strips_spline(:,1);
-yy = frameshifts_strips_spline(:,2);
-IVals = zeros(length(maxvals_strips),1); %interpolated values
-IVals(find(maxvals_strips==0)) = 1;
-
-%Chosen samples
-xx = xx(ChooseSamp);
-yy = yy(ChooseSamp);
-
-%Convert to arcmin
-xx = xx.*PxArcminH;
-yy = yy.*PxArcminV;
+    xx = frameshifts_strips_spline(:,1);
+    yy = frameshifts_strips_spline(:,2);
+    IVals = zeros(length(maxvals_strips),1); %interpolated values
+    IVals(find(maxvals_strips==0)) = 1;
+    
+    %Chosen samples
+    xx = xx(ChooseSamp);
+    yy = yy(ChooseSamp);
+    
+    %Convert to arcmin
+    xx = xx.*PxArcminH;
+    yy = yy.*PxArcminV;
 end
 
 %Rebuild and obtain start/end of dropped frames
 if ~Load_Demarcation
-[xx,yy,DropS,DropE,xx_Original,yy_Original,IVals] = SepBlink(xx,yy,Samp_per_Sec,timeaxis_secs,SPF,IVals);
+    [xx,yy,DropS,DropE,xx_Original,yy_Original,IVals] = SepBlink(xx,yy,Samp_per_Sec,timeaxis_secs,SPF,IVals);
 end
 
 TimeAx = linspace(0,timeaxis_secs(end),length(xx));
@@ -101,53 +100,33 @@ end
 %Find incorrectly labeled blinks/saccades
 [SaccS,SaccE,autoRejS,autoRejE,DropS,DropE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy);
 
-
 %Manually Check for missed saccades
 if ~Load_Demarcation
     if Manual_Check
-         % to continue to update the figure with color for auto-rejected
-
-        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheckPlus(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE, autoRejS, autoRejE,ManualWin,XFilt,YFilt);%
-         %DropStmp = sort([DropS;NewRs]); %Blinks including auto-rejected
-         %DropEtmp = sort([DropE;NewRe]); %Blinks including auto-rejected
-         %[SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropStmp,DropEtmp,ManualWin);
-
+        [SaccS,SaccE,RejectedS,RejectedE,DriftS,DriftE] = ManualCheck(xx,yy,SPF,SaccS,SaccE,DriftS,DriftE,DropS,DropE, autoRejS, autoRejE,ManualWin,XFilt,YFilt);%
     else
-        RejectedS = []; 
+        RejectedS = [];
         RejectedE = [];
     end
-
-    if ~iscolumn(RejectedS)%if line vector instead of column vector % -------------------------------------JG to commit
-        RejectedS=RejectedS';
-        RejectedE=RejectedE';
-    end
-    RejectedS = sort([RejectedS;autoRejS]);
-    RejectedE = sort([RejectedE;autoRejE]);
-
-%drop negative values and NaN values (some sort of bug?).
-
-Dstmp = DriftS; Detmp = DriftE;
-if length(DriftS)~=length(DriftE)% -----------JG to commit
-   fprintf('\nError after ManualCheckPlus, different sizes of vector\n'); 
-end
-
-
-Dstmp(find((DriftE-DriftS)<=1)) = [];
-Detmp(find((DriftE-DriftS)<=1)) = [];
-tmp = find(isnan(Dstmp) | isnan(Detmp) );
-Dstmp(tmp) = [];
-Detmp(tmp) = [];
-DriftS = Dstmp;
-DriftE = Detmp;
-
-Sstmp = SaccS; Setmp = SaccE;
-Sstmp(find((SaccE-SaccS)<=1)) = [];
-Setmp(find((SaccE-SaccS)<=1)) = [];
-tmp = find(isnan(Sstmp) | isnan(Setmp) );
-Sstmp(tmp) = [];
-Setmp(tmp) = [];
-SaccS = Sstmp;
-SaccE = Setmp;
+    
+    %drop negative values and NaN values.
+    Dstmp = DriftS; Detmp = DriftE;
+    Dstmp(find((DriftE-DriftS)<=1)) = [];
+    Detmp(find((DriftE-DriftS)<=1)) = [];
+    tmp = find(isnan(Dstmp) | isnan(Detmp) );
+    Dstmp(tmp) = [];
+    Detmp(tmp) = [];
+    DriftS = Dstmp;
+    DriftE = Detmp;
+    
+    Sstmp = SaccS; Setmp = SaccE;
+    Sstmp(find((SaccE-SaccS)<=1)) = [];
+    Setmp(find((SaccE-SaccS)<=1)) = [];
+    tmp = find(isnan(Sstmp) | isnan(Setmp) );
+    Sstmp(tmp) = [];
+    Setmp(tmp) = [];
+    SaccS = Sstmp;
+    SaccE = Setmp;
 end
 
 %Correct Torsional Sawtooth
@@ -166,38 +145,13 @@ end
 
 %Run Spectral Analysis
 if  Analyze_Fourier
-    
     PmtmWin = 1000;
     THB = 2.5;
     Overlap = 50;
     
     [F PxxM PyyM Lambda DPS_Seq] = MultiTaper_PowSpec(DriftSegX,DriftSegY,PmtmWin,SampRate,THB,Overlap);
     
-    [F PxxMT PyyMT Lambda DPS_Seq] = MultiTaper_PowSpec(TCorrX,TCorrY,PmtmWin,SampRate,THB,Overlap)
-    
-    %Temporary figure to compare torsion correction for thesis proposal.
-    %Add below or delete later.
-    
-    %     figure;
-    %     plot(log10(F),log10(PxxM),'Color','b','LineWidth',1.5);
-    %     xlim([0 2]);
-    %     hold on;
-    %     plot(log10(F),log10(PxxMT),'Color','r','LineWidth',1.5);
-    %     title('X Trace, Corrected vs Uncorrected');
-    %     xlabel('Frequency (Hz)');
-    %     ylabel('Log Amplitude (arcmin)');
-    %     title('Horizontal Amplitude');
-    %     ylim([-2.5 0.5]);
-    %     xlim([0 2]);
-    %     set(gca,'XTick',[0 1 2],'XTickLabel',{'0','10','100'});
-    %     set(gca,'ytick',[-2:1:1])
-    %     axis square
-    %     Yh = get(gca,'YLim');
-    %     Xh = gca;
-    %     Xh.XAxis.MinorTick = 'on';
-    %     Xh.XAxis.MinorTickValues = double([log10(1:9) log10(10:10:90)]);
-    %     legend('Corrected','Uncorrected','Location','Best');
-    %     set(gcf,'units','normalized','outerposition',[0 0 1 1]);
+    [F PxxMT PyyMT Lambda DPS_Seq] = MultiTaper_PowSpec(TCorrX,TCorrY,PmtmWin,SampRate,THB,Overlap);
     
 end
 
@@ -227,6 +181,7 @@ if ShowSep == 1
         set(H, 'FaceAlpha', 0.4,'EdgeAlpha',0); hold on;
     end
     
+    
     %Highlight Blinks/Dropped Frames w/ black
     for aa = 1:length(DropS)
         H = fill([DropS(aa) DropE(aa) DropE(aa) DropS(aa)],[max(Yh) max(Yh) min(Yh) min(Yh)],'k');
@@ -239,11 +194,20 @@ if ShowSep == 1
         set(H, 'FaceAlpha', 0.2,'EdgeAlpha',0); hold on;
     end
     
-
-    if exist('RejectedS')%if Manual_Check
-
+    
+    if exist('RejectedS','var')%if Manual_Check
+        
         for aa = 1:length(RejectedS)
             H = fill([RejectedS(aa) RejectedE(aa) RejectedE(aa) RejectedS(aa)],...
+                [max(Yh) max(Yh) min(Yh) min(Yh)],'k');
+            set(H, 'FaceAlpha', 0.6,'EdgeAlpha',0); hold on;
+        end
+    end
+    
+    if exist('autoRejS','var')%if Manual_Check
+        
+        for aa = 1:length(autoRejS)
+            H = fill([autoRejS(aa) autoRejE(aa) autoRejE(aa) autoRejS(aa)],...
                 [max(Yh) max(Yh) min(Yh) min(Yh)],'k');
             set(H, 'FaceAlpha', 0.6,'EdgeAlpha',0); hold on;
         end
@@ -264,4 +228,3 @@ if ShowSep == 1
     scatter(find(IVals==1),yy(find(IVals==1))-yy(1),'k.')
     
 end
-
