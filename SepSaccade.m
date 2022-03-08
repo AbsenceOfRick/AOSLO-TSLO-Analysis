@@ -32,13 +32,14 @@ function [Sstart,Send,XFilt,YFilt,xx,yy] = SepSaccades(xx,yy,SampRate,FiltWindow
 
 % Initial Variables
 
-SpdThresh = 65;%90;%65;%70;%JG 90; %speed threshold for saccades (arcmin/sec, default 90) 90<=>1.5
+SpdThresh = 90;%65;%90;%70;%JG 90; %speed threshold for saccades (arcmin/sec, default 90) 90<=>1.5
 MinDur = 5; %Minimum duration of saccade (in ms, default 5)
-MaxDur = 150;%JG150; %Maximum duration of saccade (in ms, default 100)
+MaxDur = 100;%JG150; %Maximum duration of saccade (in ms, default 100)
 MinGap = 50; %Minimum gap between saccades (in ms, default 50)
 MinAmp = 1.5;%1.5;%1.2;%1%1.8;%JG 3; %Minimum amplitude of saccade (in arcmin, default 3)
 
 %Adjust Filter Window to sampling rate (51 worked at 32SPF, adjust accordingly)
+%FiltWindow = 51;%51;
 %% Low-pass filtered x position (for speed analysis only)
 Xtmp = xx;
 Ytmp = yy;
@@ -63,7 +64,7 @@ if ~isempty(SaccVals)
     SaccVals = SaccVals(:) ; %Make sure it's a column or else they don't concatenate properly
     tmp = diff(SaccVals); tmp(end+1) = NaN; %Keep indices the same length (diff removes 1)
     NC = find(tmp~=1); %Nonconsecutive SaccVals
-    Send = [SaccVals(NC);SaccVals(end)] ; %End Values
+    Send = [SaccVals(NC)+1;SaccVals(end)] ; %End Values %JGtemp
     Sstart = [SaccVals(1);SaccVals(NC(1:end-1)+1)] ; %Start Values
     Sstart(end+1) = SaccVals(NC(end)); %Add last saccade start
     

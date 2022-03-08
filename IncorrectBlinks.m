@@ -1,28 +1,3 @@
-%This function will take blinks that are incorrectly identified and fix
-%them. Often subjects will blink while also making a saccade and this will
-%cause the trace to be highlighted as 3 seperate events (Saccade->Blink->Saccade)
-%when it's really just one event. This is a relatively rare occurence and
-%not something that can be analyzed since it occurs with the eye closed.
-%This function will simply mark the entire thing as rejected while
-%eliminating them from blink and saccade indices. 
-
-%Input:
-%saccade starts
-%saccade ends
-%blink starts
-%blink ends
-%X trace
-%Y traxe
-
-%Output:
-%saccade starts
-%saccade ends
-%rejected starts
-%rejected ends
-%blink starts
-%blink ends
-
-
 function [SaccS,SaccE,NewRs,NewRe,DropS,DropE] = IncorrectBlinks(SaccS,SaccE,DropS,DropE,xx,yy)
 
 %Find "Blinks" inside saccades and mark whole thing as rejected
@@ -65,8 +40,6 @@ for aa = 1:length(SaccS)
             ~isempty(find( (SaccS(aa) - 2) == DropE ))  %Seperate saccade fully encapsulated by blink
         ToDropS(aa) = 1; %Delete Marker
     end
-
-    
 
 end
 

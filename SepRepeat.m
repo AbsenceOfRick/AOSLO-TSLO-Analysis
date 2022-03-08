@@ -17,7 +17,7 @@ function [RepeatedFrames,RepeatedSamples] = SepRepeat(xx,yy,SPF)
 % Get all samples from all frames
 FrameCnt = 1:SPF:length(xx) ;
 
-for aa = 1:length(FrameCnt)-1 %Loop through all frames
+for aa = 1:length(FrameCnt)-1; %Loop through all frames
     
     %Excise (# of samples per frame) of X stream
     tmpX = xx(FrameCnt(aa):FrameCnt(aa+1)-1);
@@ -41,6 +41,11 @@ for aa = 1:length(FrameCnt)-1 %Loop through all frames
     tmpX_Prev = tmpX;
     tmpY_Prev = tmpY;
     
+end
+
+%Dummy in case repeat is empty
+if ~exist('Repeat')
+    Repeat = NaN;
 end
 
 RepeatedFrames = find(Repeat==1); %pull out repeated frames
